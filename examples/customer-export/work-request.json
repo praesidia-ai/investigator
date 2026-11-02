@@ -1,0 +1,8 @@
+{
+  "source": "reference-support-system",
+  "requestId": "reference-support-request-17",
+  "initiator": "reference-support-worker",
+  "approvedDestination": "reference-destination-a",
+  "reportedDestination": "reference-destination-b",
+  "note": "Synthetic evidence: an approval existing for request A must not authorize request B. Correlation and independent effect checks are required."
+}

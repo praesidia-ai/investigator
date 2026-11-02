@@ -1,0 +1,70 @@
+name: Bug report
+description: Report a reproducible problem using redacted or synthetic evidence.
+title: '[Bug]: '
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For suspected vulnerabilities, follow SECURITY.md and request a private reporting channel.
+        Do not post API keys, provider credentials, customer artifacts or exploit details here.
+        Scripted regressions and live Meta investigations are different execution modes.
+  - type: checkboxes
+    id: disclosure
+    attributes:
+      label: Before reporting
+      options:
+        - label: This is a non-sensitive bug report; I have read SECURITY.md.
+          required: true
+        - label: I removed secrets, personal information and customer evidence from this report.
+          required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or source revision
+      description: Include the component version and commit if known; do not include credentials.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Runtime and operating system
+      placeholder: Node version, npm version, operating system
+    validations:
+      required: true
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Execution mode
+      options:
+        - Scripted reference or authored repair demo
+        - Live Meta investigation
+        - Report rendering or verification
+        - Programmatic use or execution adapter
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Supply exact commands and an authored synthetic case when possible.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Observed behavior
+      description: Include exit code and relevant redacted output. Selected report evidence may be sensitive.
+    validations:
+      required: true
+  - type: textarea
+    id: provider
+    attributes:
+      label: Provider details, if relevant
+      description: Model ID and redacted error code are useful. Never paste a key, authorization header or private account information.

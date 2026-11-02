@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "id": "client-export-evidence-gap",
+  "claim": "Sensitive customer exports require independent approval bound to the exact executed request; permitted work must remain functional.",
+  "assessmentMode": "documentary",
+  "subject": {
+    "id": "client-export-workflow",
+    "environment": "deployment-evidence",
+    "revision": "fixture-v1"
+  },
+  "requiredChecks": ["independent-approval", "exact-request-binding", "permitted-work"],
+  "sources": [
+    {
+      "id": "policy",
+      "path": "policy.md",
+      "mediaType": "text/markdown",
+      "coverage": "partial",
+      "redacted": false
+    },
+    {
+      "id": "architecture",
+      "path": "architecture.json",
+      "mediaType": "application/json",
+      "coverage": "partial",
+      "redacted": false
+    },
+    {
+      "id": "telemetry",
+      "path": "telemetry.json",
+      "mediaType": "application/json",
+      "coverage": "partial",
+      "redacted": false
+    },
+    {
+      "id": "producer",
+      "path": "producer.mjs",
+      "mediaType": "text/plain",
+      "coverage": "partial",
+      "redacted": false
+    }
+  ],
+  "workContext": {
+    "objective": "Understand and make the authored export control assessable.",
+    "accountableParty": "platform-team"
+  }
+}

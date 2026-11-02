@@ -1,0 +1,19 @@
+{
+  "jsonrpc": "2.0",
+  "id": 12,
+  "result": {
+    "tools": [
+      {
+        "name": "get_export_status",
+        "inputSchema": {
+          "type": "object",
+          "properties": { "exportId": { "type": "string" } },
+          "required": ["exportId"],
+          "additionalProperties": false
+        },
+        "annotations": { "readOnlyHint": true }
+      }
+    ],
+    "nextCursor": "synthetic-next-page"
+  }
+}

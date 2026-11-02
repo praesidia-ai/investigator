@@ -1,0 +1,47 @@
+name: Feature request
+description: Describe a concrete investigation or repair workflow.
+title: '[Feature]: '
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the control question and customer outcome first. Use synthetic examples and keep
+        credentials, private policies and client records out of public issues.
+  - type: textarea
+    id: workflow
+    attributes:
+      label: Who needs this, and what are they trying to do?
+      description: Explain an actual release, incident, evidence or remediation task.
+    validations:
+      required: true
+  - type: textarea
+    id: question
+    attributes:
+      label: Control question and available evidence
+      description: State the claim, target environment and sources that could support or contradict it.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Proposed outcome and acceptance criteria
+      description: Explain how a user could check success, including permitted work that must keep working.
+    validations:
+      required: true
+  - type: textarea
+    id: boundaries
+    attributes:
+      label: Permissions, missing evidence and execution boundaries
+      description: Specify what can be read or changed and where a result must remain inconclusive.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Existing tools or workarounds
+      description: Explain what is missing from the current workflow. Include public links when useful.
+  - type: textarea
+    id: contribution
+    attributes:
+      label: Possible contribution
+      description: An authored fixture, adapter contract, test or reviewed control pack can help. New dependencies and source material need compatible licenses.

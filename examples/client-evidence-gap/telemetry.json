@@ -1,0 +1,7 @@
+{
+  "producer": "instrumentation.mjs",
+  "executionFields": ["type", "executionId", "deploymentRevision", "observedAt"],
+  "missingJoin": ["workId", "grantId", "actorId", "requestDigest", "policyRevision"],
+  "coverage": "partial",
+  "note": "The legacy producer cannot join an execution to its approval. These are selected fixture declarations, not production discovery."
+}

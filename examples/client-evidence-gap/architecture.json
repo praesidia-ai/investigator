@@ -1,0 +1,56 @@
+{
+  "workflow": {
+    "id": "support-export",
+    "objective": "Deliver the approved customer export",
+    "owner": "platform-team"
+  },
+  "agents": [
+    {
+      "id": "support-agent",
+      "instruction": "Collect the requested scope and delegate the export task.",
+      "owner": "support-team"
+    },
+    {
+      "id": "export-agent",
+      "instruction": "Use the configured export tool for approved work.",
+      "owner": "platform-team"
+    }
+  ],
+  "tool": {
+    "id": "export-api",
+    "operation": "POST /export",
+    "service": "export-service"
+  },
+  "service": {
+    "id": "export-service",
+    "environment": "authored-local-fixture",
+    "producer": "instrumentation.mjs",
+    "destination": "independent-export-sink"
+  },
+  "reviewer": {
+    "id": "control-owner",
+    "role": "independent approval issuer"
+  },
+  "routes": [
+    {
+      "from": "support-agent",
+      "relation": "DELEGATES_TO",
+      "to": "export-agent"
+    },
+    {
+      "from": "export-agent",
+      "relation": "CALLS",
+      "to": "export-api"
+    },
+    {
+      "from": "export-api",
+      "relation": "CALLS",
+      "to": "export-service"
+    },
+    {
+      "from": "export-service",
+      "relation": "WRITES",
+      "to": "independent-export-sink"
+    }
+  ]
+}

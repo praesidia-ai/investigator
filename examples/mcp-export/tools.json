@@ -1,0 +1,36 @@
+{
+  "tools": [
+    {
+      "name": "export_customer",
+      "title": "Export approved customer data",
+      "description": "Prepare the exact customer export authorized by the supplied approval reference.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "customerId": { "type": "string" },
+          "destination": { "type": "string" },
+          "approvalRef": { "type": "string" }
+        },
+        "required": ["customerId", "destination", "approvalRef"],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "get_export_status",
+      "description": "Read the status of a previously requested export.",
+      "inputSchema": {
+        "type": "object",
+        "properties": { "exportId": { "type": "string" } },
+        "required": ["exportId"],
+        "additionalProperties": false
+      },
+      "annotations": { "readOnlyHint": true }
+    }
+  ]
+}

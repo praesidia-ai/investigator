@@ -1,0 +1,70 @@
+{
+  "name": "@praesidia/investigator",
+  "version": "0.1.0",
+  "description": "Standalone evidence-driven investigations of AI-agent controls.",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/praesidia-ai/investigator.git"
+  },
+  "homepage": "https://github.com/praesidia-ai/investigator#readme",
+  "bugs": {
+    "url": "https://github.com/praesidia-ai/investigator/issues"
+  },
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "bin": {
+    "praesidia-investigator": "dist/bin.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "examples",
+    "README.md",
+    "CONTRIBUTING.md",
+    "SECURITY.md",
+    "CODE_OF_CONDUCT.md",
+    "CHANGELOG.md",
+    "docs",
+    "scripts",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.test.json",
+    "test": "vitest run",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "npm run format:check && npm run typecheck && npm run test && npm run build",
+    "demo": "node dist/bin.js demo",
+    "demo:repair": "node dist/bin.js repair-demo",
+    "evaluate": "node dist/bin.js evaluate",
+    "smoke:meta": "node dist/bin.js smoke",
+    "doctor": "node dist/bin.js doctor",
+    "demo:independent": "node scripts/independent-demo.mjs",
+    "smoke:packed": "node scripts/packed-smoke.mjs",
+    "release:readiness": "node scripts/release-readiness.mjs",
+    "release:artifact": "node scripts/packed-smoke.mjs",
+    "release:source": "python3 scripts/source-archive.py",
+    "verify:meta": "node scripts/verify-meta.mjs",
+    "prepack": "npm run check"
+  },
+  "dependencies": {
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.6",
+    "prettier": "3.9.10",
+    "typescript": "7.0.2",
+    "vitest": "5.0.5"
+  }
+}

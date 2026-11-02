@@ -1,0 +1,381 @@
+{
+  "schemaVersion": 1,
+  "id": "client-export-context",
+  "scope": {
+    "tenantRef": "acme-demo",
+    "workflowRef": "support-export",
+    "window": {
+      "from": "2026-10-26T00:00:00.000Z",
+      "to": "2026-11-05T00:00:00.000Z"
+    },
+    "excludedResources": ["Production infrastructure, HR and payment systems were not selected."]
+  },
+  "sources": [
+    {
+      "id": "client-export",
+      "tenant": "acme-demo",
+      "kind": "local-bundle",
+      "entityKinds": ["workflow", "agent", "tool", "system", "data-store", "document", "identity"],
+      "permittedReads": ["list-entities", "read-evidence", "read-relationships"],
+      "evidenceIds": ["policy", "architecture", "telemetry", "producer"],
+      "coverage": "partial",
+      "captureWindow": {
+        "from": "2026-10-26T00:00:00.000Z",
+        "to": "2026-11-05T00:00:00.000Z"
+      },
+      "pagination": "not-applicable",
+      "frontier": ["External SaaS connections and unlisted production routes were not supplied."]
+    }
+  ],
+  "entities": [
+    {
+      "ref": {
+        "sourceId": "client-export",
+        "tenant": "acme-demo",
+        "kind": "workflow",
+        "nativeId": "support-export"
+      },
+      "displayName": "Customer export",
+      "revision": "fixture-v1",
+      "citations": [
+        {
+          "evidenceId": "architecture",
+          "locator": {
+            "kind": "json-pointer",
+            "pointer": "/workflow"
+          },
+          "quote": "{\"id\":\"support-export\",\"objective\":\"Deliver the approved customer export\",\"owner\":\"platform-team\"}"
+        }
+      ]
+    },
+    {
+      "ref": {
+        "sourceId": "client-export",
+        "tenant": "acme-demo",
+        "kind": "agent",
+        "nativeId": "support-agent"
+      },
+      "displayName": "Support agent",
+      "revision": "fixture-v1",
+      "citations": [
+        {
+          "evidenceId": "architecture",
+          "locator": {
+            "kind": "json-pointer",
+            "pointer": "/agents/0/id"
+          },
+          "quote": "\"support-agent\""
+        }
+      ]
+    },
+    {
+      "ref": {
+        "sourceId": "client-export",
+        "tenant": "acme-demo",
+        "kind": "agent",
+        "nativeId": "export-agent"
+      },
+      "displayName": "Export agent",
+      "revision": "fixture-v1",
+      "citations": [
+        {
+          "evidenceId": "architecture",
+          "locator": {
+            "kind": "json-pointer",
+            "pointer": "/agents/1/id"
+          },
+          "quote": "\"export-agent\""
+        }
+      ]
+    },
+    {
+      "ref": {
+        "sourceId": "client-export",
+        "tenant": "acme-demo",
+        "kind": "tool",
+        "nativeId": "export-api"
+      },
+      "displayName": "Custom export API",
+      "revision": "fixture-v1",
+      "citations": [
+        {
+          "evidenceId": "architecture",
+          "locator": {
+            "kind": "json-pointer",
+            "pointer": "/tool/id"
+          },
+          "quote": "\"export-api\""
+        }
+      ]
+    },
+    {
+      "ref": {
+        "sourceId": "client-export",
+        "tenant": "acme-demo",
+        "kind": "system",
+        "nativeId": "export-service"
+      },
+      "displayName": "Export service",
+      "revision": "fixture-v1",
+      "citations": [
+        {
+          "evidenceId": "architecture",
+          "locator": {
+            "kind": "json-pointer",
+            "pointer": "/service/id"
+          },
+          "quote": "\"export-service\""
+        }
+      ]
+    },
+    {
+      "ref": {
+        "sourceId": "client-export",
+        "tenant": "acme-demo",
+        "kind": "data-store",
+        "nativeId": "independent-export-sink"
+      },
+      "displayName": "Independent destination",
+      "revision": "fixture-v1",
+      "citations": [
+        {
+          "evidenceId": "architecture",
+          "locator": {
+            "kind": "json-pointer",
+            "pointer": "/service/destination"
+          },
+          "quote": "\"independent-export-sink\""
+        }
+      ]
+    },
+    {
+      "ref": {
+        "sourceId": "client-export",
+        "tenant": "acme-demo",
+        "kind": "document",
+        "nativeId": "export-policy"
+      },
+      "displayName": "Customer export policy",
+      "revision": "fixture-v1",
+      "citations": [
+        {
+          "evidenceId": "policy",
+          "locator": {
+            "kind": "lines",
+            "start": 3,
+            "end": 3
+          },
+          "quote": "Sensitive customer exports require independent approval bound to the exact executed request."
+        }
+      ]
+    },
+    {
+      "ref": {
+        "sourceId": "client-export",
+        "tenant": "acme-demo",
+        "kind": "identity",
+        "nativeId": "control-owner"
+      },
+      "displayName": "Control owner",
+      "revision": "fixture-v1",
+      "citations": [
+        {
+          "evidenceId": "architecture",
+          "locator": {
+            "kind": "json-pointer",
+            "pointer": "/reviewer/id"
+          },
+          "quote": "\"control-owner\""
+        }
+      ]
+    }
+  ],
+  "assertions": [
+    {
+      "id": "route-1",
+      "subject": {
+        "sourceId": "client-export",
+        "tenant": "acme-demo",
+        "kind": "agent",
+        "nativeId": "support-agent"
+      },
+      "relation": "DELEGATES_TO",
+      "object": {
+        "kind": "entity",
+        "ref": {
+          "sourceId": "client-export",
+          "tenant": "acme-demo",
+          "kind": "agent",
+          "nativeId": "export-agent"
+        }
+      },
+      "basis": "configured",
+      "citations": [
+        {
+          "evidenceId": "architecture",
+          "locator": {
+            "kind": "json-pointer",
+            "pointer": "/routes/0/relation"
+          },
+          "quote": "\"DELEGATES_TO\""
+        }
+      ],
+      "sourceRevision": "fixture-v1",
+      "effectiveFrom": "2026-10-26T00:00:00.000Z",
+      "effectiveUntil": null,
+      "observedAt": null,
+      "capturedAt": "2026-10-26T00:00:00.000Z",
+      "verification": "unverified",
+      "assessment": "unresolved"
+    },
+    {
+      "id": "route-2",
+      "subject": {
+        "sourceId": "client-export",
+        "tenant": "acme-demo",
+        "kind": "agent",
+        "nativeId": "export-agent"
+      },
+      "relation": "CALLS",
+      "object": {
+        "kind": "entity",
+        "ref": {
+          "sourceId": "client-export",
+          "tenant": "acme-demo",
+          "kind": "tool",
+          "nativeId": "export-api"
+        }
+      },
+      "basis": "configured",
+      "citations": [
+        {
+          "evidenceId": "architecture",
+          "locator": {
+            "kind": "json-pointer",
+            "pointer": "/routes/1/relation"
+          },
+          "quote": "\"CALLS\""
+        }
+      ],
+      "sourceRevision": "fixture-v1",
+      "effectiveFrom": "2026-10-26T00:00:00.000Z",
+      "effectiveUntil": null,
+      "observedAt": null,
+      "capturedAt": "2026-10-26T00:00:00.000Z",
+      "verification": "unverified",
+      "assessment": "unresolved"
+    },
+    {
+      "id": "route-3",
+      "subject": {
+        "sourceId": "client-export",
+        "tenant": "acme-demo",
+        "kind": "tool",
+        "nativeId": "export-api"
+      },
+      "relation": "CALLS",
+      "object": {
+        "kind": "entity",
+        "ref": {
+          "sourceId": "client-export",
+          "tenant": "acme-demo",
+          "kind": "system",
+          "nativeId": "export-service"
+        }
+      },
+      "basis": "configured",
+      "citations": [
+        {
+          "evidenceId": "architecture",
+          "locator": {
+            "kind": "json-pointer",
+            "pointer": "/routes/2/relation"
+          },
+          "quote": "\"CALLS\""
+        }
+      ],
+      "sourceRevision": "fixture-v1",
+      "effectiveFrom": "2026-10-26T00:00:00.000Z",
+      "effectiveUntil": null,
+      "observedAt": null,
+      "capturedAt": "2026-10-26T00:00:00.000Z",
+      "verification": "unverified",
+      "assessment": "unresolved"
+    },
+    {
+      "id": "route-4",
+      "subject": {
+        "sourceId": "client-export",
+        "tenant": "acme-demo",
+        "kind": "system",
+        "nativeId": "export-service"
+      },
+      "relation": "WRITES",
+      "object": {
+        "kind": "entity",
+        "ref": {
+          "sourceId": "client-export",
+          "tenant": "acme-demo",
+          "kind": "data-store",
+          "nativeId": "independent-export-sink"
+        }
+      },
+      "basis": "configured",
+      "citations": [
+        {
+          "evidenceId": "architecture",
+          "locator": {
+            "kind": "json-pointer",
+            "pointer": "/routes/3/relation"
+          },
+          "quote": "\"WRITES\""
+        }
+      ],
+      "sourceRevision": "fixture-v1",
+      "effectiveFrom": "2026-10-26T00:00:00.000Z",
+      "effectiveUntil": null,
+      "observedAt": null,
+      "capturedAt": "2026-10-26T00:00:00.000Z",
+      "verification": "unverified",
+      "assessment": "unresolved"
+    },
+    {
+      "id": "export-policy-declaration",
+      "subject": {
+        "sourceId": "client-export",
+        "tenant": "acme-demo",
+        "kind": "document",
+        "nativeId": "export-policy"
+      },
+      "relation": "REQUIRES",
+      "object": {
+        "kind": "value",
+        "value": "independent approval bound to exact request"
+      },
+      "basis": "declared",
+      "citations": [
+        {
+          "evidenceId": "policy",
+          "locator": {
+            "kind": "lines",
+            "start": 3,
+            "end": 3
+          },
+          "quote": "Sensitive customer exports require independent approval bound to the exact executed request."
+        }
+      ],
+      "sourceRevision": "fixture-v1",
+      "effectiveFrom": "2026-10-26T00:00:00.000Z",
+      "effectiveUntil": null,
+      "observedAt": null,
+      "capturedAt": "2026-10-26T00:00:00.000Z",
+      "verification": "unverified",
+      "assessment": "unresolved"
+    }
+  ],
+  "unresolvedQuestions": [
+    "Do the configured routes match actual production behavior?",
+    "Which independently captured records join approval to execution?",
+    "Who confirms that this policy applies to the selected production deployment?"
+  ]
+}

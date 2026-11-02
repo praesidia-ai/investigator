@@ -1,0 +1,8 @@
+{
+  "sourceId": "example-mcp-export",
+  "tenant": "acme-demo",
+  "serverId": "customer-export-server",
+  "revision": "saved-export-v1",
+  "workflowRef": "customer-export",
+  "window": { "from": "2026-10-26T00:00:00.000Z", "to": "2026-11-05T00:00:00.000Z" }
+}

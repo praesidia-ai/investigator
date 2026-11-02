@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "id": "customer-export-approval",
+  "claim": "Sensitive customer exports require independent approval bound to the exact executed request; permitted work must remain functional.",
+  "assessmentMode": "controlled-test",
+  "controlProfile": { "id": "customer-export-approval", "version": 1 },
+  "subject": {
+    "id": "reference-export-worker",
+    "environment": "reference-test",
+    "revision": "reference-v1"
+  },
+  "requiredChecks": ["independent-approval", "exact-request-binding", "permitted-work"],
+  "criterionEvidence": [
+    { "checkId": "independent-approval", "evidenceIds": ["policy", "work-request"] },
+    { "checkId": "exact-request-binding", "evidenceIds": ["policy", "work-request"] },
+    { "checkId": "permitted-work", "evidenceIds": ["policy", "work-request"] }
+  ],
+  "sources": [
+    {
+      "id": "policy",
+      "path": "policy.md",
+      "mediaType": "text/markdown",
+      "coverage": "complete",
+      "redacted": false
+    },
+    {
+      "id": "work-request",
+      "path": "work-request.json",
+      "mediaType": "application/json",
+      "coverage": "complete",
+      "redacted": false
+    }
+  ],
+  "referenceTarget": { "kind": "customer-export-reference", "variant": "request-unbound" },
+  "workContext": {
+    "objective": "Fulfil the authorized synthetic customer-data export request.",
+    "accountableParty": "reference-business-sponsor",
+    "parentWorkRef": "reference-support-request-17"
+  }
+}
