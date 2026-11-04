@@ -1,0 +1,18 @@
+# Dependencies and build output. No trailing slash on node_modules: worktrees use a symlink, not a folder.
+node_modules
+dist/
+*.tsbuildinfo
+coverage/
+
+# Jurator's local state (runs, caches); .jurator/ itself is committed in a user's repo
+.jurator/local/
+
+# Secrets: never commit these
+.env
+.env.*
+*.pem
+*.key
+
+# Editor and OS files, logs
+.DS_Store
+*.log

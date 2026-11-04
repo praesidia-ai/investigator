@@ -28,6 +28,8 @@ export interface ModelRequest {
   readonly outputFormat?: ModelOutputFormat;
   readonly maxOutputTokens?: number;
   readonly reasoningEffort?: ReasoningEffort;
+  /** Opt-in: allow several function calls in one model turn. The host still runs them in order. */
+  readonly parallelToolCalls?: boolean;
 }
 export interface ModelCompletion {
   readonly text: string;

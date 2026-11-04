@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "sources": [
+    {
+      "alias": "privacy",
+      "connector": "file",
+      "locator": "docs/privacy.md"
+    },
+    {
+      "alias": "security",
+      "connector": "file",
+      "locator": "docs/security.md"
+    },
+    {
+      "alias": "praesidia",
+      "connector": "praesidia",
+      "locator": "policies/praesidia-support-agent.json"
+    }
+  ],
+  "failMode": "block",
+  "codeScope": [
+    "src/**",
+    "app/**",
+    "lib/**"
+  ],
+  "model": {
+    "id": "muse-wonder-1.0",
+    "reasoningEffort": "medium"
+  },
+  "budgetUsdPerRun": 2
+}

@@ -1,0 +1,15 @@
+{
+  "feasible": true,
+  "reason": "Support chats are the customer data the agent keeps; CHAT_TTL_DAYS sets how long, so it must stay at 90 days or less.",
+  "violationExamples": [],
+  "keptExamples": [],
+  "mode": "must-match",
+  "pattern": "CHAT_TTL_DAYS\\s*=\\s*(?:[0-9]|[1-8][0-9]|90)\\b",
+  "flags": null,
+  "anchor": null,
+  "within": null,
+  "globs": [
+    "src/agent/**"
+  ],
+  "description": "The support chat lifetime CHAT_TTL_DAYS is set to 90 days or less."
+}

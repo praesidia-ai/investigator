@@ -1,0 +1,8 @@
+{
+  "verdict": "kept",
+  "explanation": "exportableNotes keeps only notes whose deletedAt and archivedAt are null, and the export route builds its output from it.",
+  "citations": [
+    { "path": "src/export/query.ts", "startLine": 5, "endLine": 5 },
+    { "path": "src/routes/export.ts", "startLine": 10, "endLine": 10 }
+  ]
+}

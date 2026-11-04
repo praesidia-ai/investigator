@@ -1,0 +1,20 @@
+{
+  "locations": [
+    {
+      "name": "search_notes",
+      "path": "src/agent/tools.ts",
+      "startLine": 5,
+      "endLine": 5,
+      "kind": "allowlist",
+      "why": "search_notes is in the support agent's tool list; the approval call for it would go on this line."
+    },
+    {
+      "name": "approvalGate",
+      "path": "src/agent/praesidia.ts",
+      "startLine": 2,
+      "endLine": 2,
+      "kind": "guard",
+      "why": "approvalGate is the call that asks Praesidia for approval before a tool runs."
+    }
+  ]
+}

@@ -11,6 +11,18 @@ retired work root still acted after revocation was acknowledged.
 Praesidia is an optional future integration; the standalone application does not require an account,
 platform key, backend, database, gateway or sibling checkout.
 
+## Jurator (in [`jurator/`](jurator/README.md))
+
+Jurator takes Investigator's approach (the model proposes, the code decides; exact-quote evidence; records anyone can
+verify) from two hand-built controls to every promise a team writes down. It compiles written policies into numbered
+promises with exact quotes and typed fields, has Muse Wonder write a rule for each promise and proves the rule can
+fail, then runs the rules with no AI on every change: in the coding agent and on push (`jurator check --md` prints a
+pull request comment). Each check leaves a record that `jurator verify` re-checks with no AI, and `jurator discuss` is
+a chat that explains findings and proposes the next step for you to confirm. Investigator's experiments stay the
+strongest level of proof. Jurator reuses Investigator's Meta Responses provider (`src/providers/` ->
+`jurator/src/model/meta/`). It is its own package: `cd jurator && npm ci && npm run check`. Every command and its
+arguments: [`jurator/README.md`](jurator/README.md#commands).
+
 The application provides versioned control profiles, frozen evidence, observed-effect checks,
 a bounded investigator/skeptic loop, Meta Responses transport, a supported repair workflow, and
 portable HTML/JSON/JUnit reports. It is Apache-2.0 licensed and has no runtime imports from the

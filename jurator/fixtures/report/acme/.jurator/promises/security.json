@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "id": "security.01",
+      "status": "accepted",
+      "wording": "Only workspace admins can export customer data.",
+      "quote": {
+        "alias": "security",
+        "policySha256": "d17a986aa1c9e3f97a56c9bc6042a42c4356258e3514fbd7557cac24cf287385",
+        "text": "Only workspace admins can export customer data.",
+        "start": 32,
+        "end": 79,
+        "line": 3
+      },
+      "kind": "must",
+      "checkable": "code",
+      "scope": [
+        "src/routes/**",
+        "src/export/**"
+      ],
+      "foundBy": "model",
+      "firstSeen": "2026-11-04T03:36:02.231Z"
+    },
+    {
+      "id": "security.02",
+      "status": "accepted",
+      "wording": "Passwords are hashed with argon2 and never stored in plain text.",
+      "quote": {
+        "alias": "security",
+        "policySha256": "d17a986aa1c9e3f97a56c9bc6042a42c4356258e3514fbd7557cac24cf287385",
+        "text": "Passwords are hashed with argon2 and are never stored in plain text.",
+        "start": 82,
+        "end": 150,
+        "line": 4
+      },
+      "kind": "must",
+      "checkable": "code",
+      "scope": [
+        "src/auth/**"
+      ],
+      "foundBy": "model",
+      "firstSeen": "2026-11-04T03:36:02.231Z"
+    },
+    {
+      "id": "security.03",
+      "status": "accepted",
+      "wording": "Card numbers and passwords are never written to logs.",
+      "quote": {
+        "alias": "security",
+        "policySha256": "d17a986aa1c9e3f97a56c9bc6042a42c4356258e3514fbd7557cac24cf287385",
+        "text": "We never write card numbers or passwords to logs.",
+        "start": 153,
+        "end": 202,
+        "line": 5
+      },
+      "kind": "must-not",
+      "checkable": "code",
+      "scope": [
+        "src/**"
+      ],
+      "foundBy": "model",
+      "firstSeen": "2026-11-04T03:36:02.231Z"
+    }
+  ]
+}

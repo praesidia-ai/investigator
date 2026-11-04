@@ -1,0 +1,5 @@
+{
+  "verdict": "broken",
+  "explanation": "The /export route catches the ForbiddenError from requireAdmin and keeps going, so any member can export notes.",
+  "citations": [{ "path": "src/routes/export.ts", "startLine": 8, "endLine": 10 }]
+}

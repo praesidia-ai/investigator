@@ -1,0 +1,12 @@
+{
+  "locations": [
+    {
+      "name": "send",
+      "path": "src/routes/export.ts",
+      "startLine": 12,
+      "endLine": 12,
+      "kind": "call",
+      "why": "The export route is the one place notes leave the app; a new destination for notes would change this call."
+    }
+  ]
+}

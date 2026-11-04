@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "id": "R-praesidia.03-1",
+      "promiseId": "praesidia.03",
+      "description": "The export_notes agent tool calls approvalGate('export_notes') before running.",
+      "mode": "must-match",
+      "pattern": "approvalGate\\(\\s*['\"]export_notes['\"]",
+      "globs": [
+        "src/agent/**"
+      ],
+      "provenBy": {
+        "mutation": "removed 1 line with /approvalGate\\(\\s*['\"]export_notes['\"]/ (src/agent/tools.ts:7); the rule then failed",
+        "failedAsExpected": true,
+        "at": "2026-11-04T03:36:02.844Z"
+      },
+      "status": "accepted",
+      "author": "model",
+      "createdAt": "2026-11-04T03:36:02.844Z"
+    },
+    {
+      "id": "R-privacy.01-1",
+      "promiseId": "privacy.01",
+      "description": "The support chat lifetime CHAT_TTL_DAYS is set to 30 days.",
+      "mode": "must-match",
+      "pattern": "CHAT_TTL_DAYS\\s*=\\s*30\\b",
+      "globs": [
+        "src/agent/**"
+      ],
+      "provenBy": {
+        "mutation": "removed 1 line with /CHAT_TTL_DAYS\\s*=\\s*30\\b/ (src/agent/chats.ts:2); the rule then failed",
+        "failedAsExpected": true,
+        "at": "2026-11-04T03:36:02.887Z"
+      },
+      "status": "accepted",
+      "author": "model",
+      "createdAt": "2026-11-04T03:36:02.887Z"
+    },
+    {
+      "id": "R-privacy.02-1",
+      "promiseId": "privacy.02",
+      "description": "The export filter keeps only notes that are neither deleted nor archived.",
+      "mode": "must-match",
+      "pattern": "deletedAt\\s*===\\s*null\\b.*\\barchivedAt\\s*===\\s*null\\b",
+      "globs": [
+        "src/export/**"
+      ],
+      "provenBy": {
+        "mutation": "removed 1 line with /deletedAt\\s*===\\s*null\\b.*\\barchivedAt\\s*===\\s*null\\b/ (src/export/query.ts:5); the rule then failed",
+        "failedAsExpected": true,
+        "at": "2026-11-04T03:36:02.928Z"
+      },
+      "status": "accepted",
+      "author": "model",
+      "createdAt": "2026-11-04T03:36:02.928Z"
+    },
+    {
+      "id": "R-security.01-1",
+      "promiseId": "security.01",
+      "description": "Every export route calls requireAdmin( within 3 lines.",
+      "mode": "each-near",
+      "pattern": "requireAdmin\\(",
+      "anchor": "router\\.(?:get|post|put|patch|delete)\\(\\s*['\"]/export",
+      "within": 3,
+      "globs": [
+        "src/routes/**"
+      ],
+      "provenBy": {
+        "mutation": "removed requireAdmin( from 1 line (src/routes/export.ts:9); the rule then failed",
+        "failedAsExpected": true,
+        "at": "2026-11-04T03:36:02.990Z"
+      },
+      "status": "accepted",
+      "author": "model",
+      "createdAt": "2026-11-04T03:36:02.990Z"
+    },
+    {
+      "id": "R-security.02-1",
+      "promiseId": "security.02",
+      "description": "Password hashing in src/auth/ asks for an argon2 hash type.",
+      "mode": "must-match",
+      "pattern": "type:\\s*['\"]argon2(?:id|i|d)?['\"]",
+      "globs": [
+        "src/auth/**"
+      ],
+      "provenBy": {
+        "mutation": "removed 2 lines with /type:\\s*['\"]argon2(?:id|i|d)?['\"]/ (src/auth/argon2.ts:6, src/auth/passwords.ts:4); the rule then failed",
+        "failedAsExpected": true,
+        "at": "2026-11-04T03:36:03.032Z"
+      },
+      "status": "accepted",
+      "author": "model",
+      "createdAt": "2026-11-04T03:36:03.032Z"
+    },
+    {
+      "id": "R-security.03-1",
+      "promiseId": "security.03",
+      "description": "No log call passes a password or card number.",
+      "mode": "must-not-match",
+      "pattern": "\\b(?:log|logger\\.\\w+|console\\.\\w+)\\([^)]*\\b(?:password|cardNumber|card_number)\\b",
+      "flags": "i",
+      "globs": [
+        "src/**/*.ts"
+      ],
+      "provenBy": {
+        "mutation": "added the line `log('login', { email: user.email, password });` to src/agent/chats.ts; the rule then failed",
+        "failedAsExpected": true,
+        "at": "2026-11-04T03:36:03.072Z"
+      },
+      "status": "accepted",
+      "author": "model",
+      "createdAt": "2026-11-04T03:36:03.072Z"
+    }
+  ]
+}

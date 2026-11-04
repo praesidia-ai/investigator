@@ -1,0 +1,5 @@
+Jurator
+Copyright 2026 Praesidia contributors.
+
+src/model/meta/ is ported from Praesidia Investigator (praesidia-ai/investigator@d49aaea, Apache-2.0),
+Copyright 2026 Praesidia contributors. Each ported file names its source in its first lines.

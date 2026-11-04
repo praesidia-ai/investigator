@@ -1,0 +1,28 @@
+// Owner: WP-R. Deterministic rules (no AI) + the rule maintainer (model writes rules, program proves they can fail).
+export { runRule, proveRuleCanFail, filesForRule, DEFAULT_WITHIN, MAX_HITS } from './engine.js';
+export type { ProofOptions, ProofResult } from './engine.js';
+export { proposeRule, buildRulePrompt, ruleTaskKey, MAX_PROMPT_CODE_CHARS } from './propose.js';
+export type { ProposeOptions, ProposeResult } from './propose.js';
+export { mapPool, DEFAULT_CONCURRENCY, MAX_CONCURRENCY } from './pool.js';
+export { deriveFix, describeEvidence } from './fix.js';
+export type { BrokenNow, BrokenNowEvidence, DerivedFix } from './fix.js';
+export { readInfeasible, writeInfeasible, nextInfeasible, infeasiblePath, INFEASIBLE_FILE } from './infeasible.js';
+export { readNoRule, writeNoRule, nextNoRule, noRulePath, NO_RULE_FILE } from './no-rule.js';
+export type { NoRuleEntry, NoRuleFile } from './no-rule.js';
+export { exampleCallProblem, callsIn } from './repo-aware.js';
+export { numericConstraint, keptNumberPattern, breakingValue, proveValueChecked, constraintPromptLines } from './values.js';
+export type { NumericConstraint, ValueProof } from './values.js';
+export { compileSafe, unsafeReason, displayPattern, normalizeFlags } from './regex.js';
+export { loadRuleFiles, ruleCoverage, acceptedRulesFor } from './files.js';
+export { ruleAnswerSchema, RULE_PROPOSE_INSTRUCTIONS } from './prompts.js';
+export { redteamRule, filesForRedteam, showEdit, REDTEAM_ATTACKER_MODEL, REDTEAM_JUDGE_MODEL } from './redteam.js';
+export type { RedteamReport, RedteamAttempt, RedteamOptions, JudgeFn } from './redteam.js';
+export type { RuleAnswer } from './prompts.js';
+// FU-1: the red-team loop (repair from confirmed evasions, re-prove, re-attack) and the stored evasions `rule test` re-runs.
+export { hardenRule, repairTaskKey, repairInput, editDiff, MAX_REPAIR_ROUNDS } from './repair.js';
+export type { HardenReport, HardenOptions, Evasion, RepairRound } from './repair.js';
+export { readMutants, writeMutants, nextMutants, testMutants, mutantsPath, MUTANTS_FILE } from './mutants.js';
+export type { MutantsFile, MutantResult, StoredEvasion } from './mutants.js';
+export { checkRuleAnswer, runOnEdit } from './propose.js';
+export type { RuleExamples, ExtraProof, LabelledEdit } from './propose.js';
+export { RULE_REPAIR_INSTRUCTIONS } from './prompts.js';

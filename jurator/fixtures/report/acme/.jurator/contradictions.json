@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "id": "C-1",
+      "promiseIds": [
+        "praesidia.01",
+        "privacy.01"
+      ],
+      "example": "A support chat from 1 March must be deleted by 31 March under the privacy policy (privacy.01), but the Praesidia support agent policy keeps it until 30 May (praesidia.01).",
+      "status": "open",
+      "foundBy": "model"
+    }
+  ]
+}

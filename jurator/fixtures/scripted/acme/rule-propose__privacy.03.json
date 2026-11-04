@@ -1,0 +1,13 @@
+{
+  "feasible": false,
+  "reason": "Selling or sharing notes with advertisers is a business decision; no line of code shows it is kept.",
+  "violationExamples": [],
+  "keptExamples": [],
+  "mode": null,
+  "pattern": null,
+  "flags": null,
+  "anchor": null,
+  "within": null,
+  "globs": [],
+  "description": null
+}

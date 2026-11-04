@@ -1,0 +1,5 @@
+{
+  "summary": "The AI read could not tell whether search_notes waits for approval: the code runs it without approvalGate, and approval may happen in Praesidia at runtime.",
+  "toFix": "Check whether Praesidia approves search_notes at runtime; if not, call approvalGate('search_notes') before it runs.",
+  "note": null
+}

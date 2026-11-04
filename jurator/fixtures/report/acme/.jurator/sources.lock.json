@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "alias": "praesidia",
+      "connector": "praesidia",
+      "locator": "policies/praesidia-support-agent.json",
+      "sha256": "a1401f3743191281b396cb851f700c198548d40ace9fc2594a534d9fbeb6d8f9",
+      "upstreamVersion": "7",
+      "fetchedAt": "2026-11-04T03:36:02.234Z",
+      "textPath": "sources/praesidia.json"
+    },
+    {
+      "alias": "privacy",
+      "connector": "file",
+      "locator": "docs/privacy.md",
+      "sha256": "bc5c88d02838a0980e01c2ea538c5fee842c22b4707a060d4743e5f1ebc57ca0",
+      "fetchedAt": "2026-11-04T03:36:02.233Z",
+      "textPath": "sources/privacy.md"
+    },
+    {
+      "alias": "security",
+      "connector": "file",
+      "locator": "docs/security.md",
+      "sha256": "d17a986aa1c9e3f97a56c9bc6042a42c4356258e3514fbd7557cac24cf287385",
+      "fetchedAt": "2026-11-04T03:36:02.233Z",
+      "textPath": "sources/security.md"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "verdict": "cant-tell",
+  "explanation": "search_notes runs without calling approvalGate in the code shown; approval may be enforced by Praesidia at runtime instead.",
+  "citations": [
+    { "path": "src/agent/tools.ts", "startLine": 5, "endLine": 5 }
+  ]
+}

@@ -1,0 +1,357 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "id": "praesidia.01",
+      "status": "accepted",
+      "wording": "Data is kept for at most 90 days.",
+      "quote": {
+        "alias": "praesidia",
+        "policySha256": "a1401f3743191281b396cb851f700c198548d40ace9fc2594a534d9fbeb6d8f9",
+        "text": "90",
+        "line": 5,
+        "jsonPointer": "/dataRetentionDays"
+      },
+      "kind": "must",
+      "checkable": "code",
+      "scope": [],
+      "params": [
+        {
+          "name": "dataRetentionDays",
+          "value": "90",
+          "unit": "days"
+        }
+      ],
+      "foundBy": "structured",
+      "firstSeen": "2026-11-04T03:36:02.231Z",
+      "facets": {
+        "subject": "support chats",
+        "action": "keep",
+        "constraint": {
+          "name": "retention",
+          "op": "<=",
+          "value": "90",
+          "unit": "days"
+        }
+      }
+    },
+    {
+      "id": "praesidia.02",
+      "status": "accepted",
+      "wording": "search_notes needs approval before it runs.",
+      "quote": {
+        "alias": "praesidia",
+        "policySha256": "a1401f3743191281b396cb851f700c198548d40ace9fc2594a534d9fbeb6d8f9",
+        "text": "\"search_notes\"",
+        "line": 6,
+        "jsonPointer": "/allowedTools/0"
+      },
+      "kind": "must",
+      "checkable": "code",
+      "scope": [],
+      "params": [
+        {
+          "name": "tool",
+          "value": "search_notes"
+        }
+      ],
+      "foundBy": "structured",
+      "firstSeen": "2026-11-04T03:36:02.231Z",
+      "facets": {
+        "subject": "search_notes",
+        "action": "require approval",
+        "constraint": {
+          "name": "before it runs",
+          "op": "always",
+          "value": null,
+          "unit": null
+        }
+      }
+    },
+    {
+      "id": "praesidia.03",
+      "status": "accepted",
+      "wording": "export_notes needs approval before it runs.",
+      "quote": {
+        "alias": "praesidia",
+        "policySha256": "a1401f3743191281b396cb851f700c198548d40ace9fc2594a534d9fbeb6d8f9",
+        "text": "\"export_notes\"",
+        "line": 6,
+        "jsonPointer": "/allowedTools/1"
+      },
+      "kind": "must",
+      "checkable": "code",
+      "scope": [],
+      "params": [
+        {
+          "name": "tool",
+          "value": "export_notes"
+        }
+      ],
+      "foundBy": "structured",
+      "firstSeen": "2026-11-04T03:36:02.231Z",
+      "facets": {
+        "subject": "export_notes",
+        "action": "require approval",
+        "constraint": {
+          "name": "before it runs",
+          "op": "always",
+          "value": null,
+          "unit": null
+        }
+      }
+    },
+    {
+      "id": "praesidia.04",
+      "status": "accepted",
+      "wording": "Personal data is blocked from agent output.",
+      "quote": {
+        "alias": "praesidia",
+        "policySha256": "a1401f3743191281b396cb851f700c198548d40ace9fc2594a534d9fbeb6d8f9",
+        "text": "true",
+        "line": 8,
+        "jsonPointer": "/blockPii"
+      },
+      "kind": "must",
+      "checkable": "runtime",
+      "scope": [],
+      "foundBy": "structured",
+      "firstSeen": "2026-11-04T03:36:02.231Z",
+      "facets": {
+        "subject": "personal data",
+        "action": "show in agent output",
+        "constraint": {
+          "name": "allowed",
+          "op": "never",
+          "value": null,
+          "unit": null
+        }
+      }
+    },
+    {
+      "id": "privacy.01",
+      "status": "accepted",
+      "wording": "Support chats are deleted after 30 days.",
+      "quote": {
+        "alias": "privacy",
+        "policySha256": "bc5c88d02838a0980e01c2ea538c5fee842c22b4707a060d4743e5f1ebc57ca0",
+        "text": "Support chats are deleted after 30 days.",
+        "start": 82,
+        "end": 122,
+        "line": 7
+      },
+      "kind": "must",
+      "checkable": "code",
+      "scope": [
+        "src/agent/**"
+      ],
+      "params": [
+        {
+          "name": "retentionDays",
+          "value": "30",
+          "unit": "days"
+        }
+      ],
+      "foundBy": "model",
+      "firstSeen": "2026-11-04T03:36:02.231Z",
+      "facets": {
+        "subject": "support chats",
+        "action": "keep",
+        "constraint": {
+          "name": "retention",
+          "op": "<=",
+          "value": "30",
+          "unit": "days"
+        }
+      }
+    },
+    {
+      "id": "privacy.02",
+      "status": "accepted",
+      "wording": "Exports never include deleted or archived notes.",
+      "quote": {
+        "alias": "privacy",
+        "policySha256": "bc5c88d02838a0980e01c2ea538c5fee842c22b4707a060d4743e5f1ebc57ca0",
+        "text": "Exports never include deleted or archived notes.",
+        "start": 126,
+        "end": 174,
+        "line": 8
+      },
+      "kind": "must-not",
+      "checkable": "code",
+      "scope": [
+        "src/export/**",
+        "src/routes/export.ts"
+      ],
+      "foundBy": "model",
+      "firstSeen": "2026-11-04T03:36:02.231Z",
+      "facets": {
+        "subject": "deleted or archived notes",
+        "action": "include in exports",
+        "constraint": {
+          "name": "allowed",
+          "op": "never",
+          "value": null,
+          "unit": null
+        }
+      }
+    },
+    {
+      "id": "privacy.03",
+      "status": "accepted",
+      "wording": "Notes are never sold or shared with advertisers.",
+      "quote": {
+        "alias": "privacy",
+        "policySha256": "bc5c88d02838a0980e01c2ea538c5fee842c22b4707a060d4743e5f1ebc57ca0",
+        "text": "We never sell your notes or share them with advertisers.",
+        "start": 178,
+        "end": 234,
+        "line": 9
+      },
+      "kind": "must-not",
+      "checkable": "code",
+      "scope": [
+        "src/export/**",
+        "src/routes/**"
+      ],
+      "foundBy": "model",
+      "firstSeen": "2026-11-04T03:36:02.231Z",
+      "facets": {
+        "subject": "notes",
+        "action": "sell or share with advertisers",
+        "constraint": {
+          "name": "allowed",
+          "op": "never",
+          "value": null,
+          "unit": null
+        }
+      }
+    },
+    {
+      "id": "privacy.04",
+      "status": "accepted",
+      "wording": "Users are told within 72 hours of a breach that affects their data.",
+      "quote": {
+        "alias": "privacy",
+        "policySha256": "bc5c88d02838a0980e01c2ea538c5fee842c22b4707a060d4743e5f1ebc57ca0",
+        "text": "We tell you within 72 hours of a breach that affects your data.",
+        "start": 267,
+        "end": 330,
+        "line": 13
+      },
+      "kind": "must",
+      "checkable": "process",
+      "scope": [],
+      "params": [
+        {
+          "name": "breachNoticeHours",
+          "value": "72",
+          "unit": "hours"
+        }
+      ],
+      "foundBy": "model",
+      "firstSeen": "2026-11-04T03:36:02.231Z",
+      "facets": {
+        "subject": "data breaches",
+        "action": "notify users",
+        "constraint": {
+          "name": "deadline",
+          "op": "<=",
+          "value": "72",
+          "unit": "hours"
+        }
+      }
+    },
+    {
+      "id": "security.01",
+      "status": "accepted",
+      "wording": "Only workspace admins can export customer data.",
+      "quote": {
+        "alias": "security",
+        "policySha256": "d17a986aa1c9e3f97a56c9bc6042a42c4356258e3514fbd7557cac24cf287385",
+        "text": "Only workspace admins can export customer data.",
+        "start": 32,
+        "end": 79,
+        "line": 3
+      },
+      "kind": "must",
+      "checkable": "code",
+      "scope": [
+        "src/routes/**",
+        "src/export/**"
+      ],
+      "foundBy": "model",
+      "firstSeen": "2026-11-04T03:36:02.231Z",
+      "facets": {
+        "subject": "customer data",
+        "action": "export",
+        "constraint": {
+          "name": "role",
+          "op": "==",
+          "value": "admin",
+          "unit": null
+        }
+      }
+    },
+    {
+      "id": "security.02",
+      "status": "accepted",
+      "wording": "Passwords are hashed with argon2 and never stored in plain text.",
+      "quote": {
+        "alias": "security",
+        "policySha256": "d17a986aa1c9e3f97a56c9bc6042a42c4356258e3514fbd7557cac24cf287385",
+        "text": "Passwords are hashed with argon2 and are never stored in plain text.",
+        "start": 82,
+        "end": 150,
+        "line": 4
+      },
+      "kind": "must",
+      "checkable": "code",
+      "scope": [
+        "src/auth/**"
+      ],
+      "foundBy": "model",
+      "firstSeen": "2026-11-04T03:36:02.231Z",
+      "facets": {
+        "subject": "passwords",
+        "action": "hash",
+        "constraint": {
+          "name": "algorithm",
+          "op": "==",
+          "value": "argon2",
+          "unit": null
+        }
+      }
+    },
+    {
+      "id": "security.03",
+      "status": "accepted",
+      "wording": "Card numbers and passwords are never written to logs.",
+      "quote": {
+        "alias": "security",
+        "policySha256": "d17a986aa1c9e3f97a56c9bc6042a42c4356258e3514fbd7557cac24cf287385",
+        "text": "We never write card numbers or passwords to logs.",
+        "start": 153,
+        "end": 202,
+        "line": 5
+      },
+      "kind": "must-not",
+      "checkable": "code",
+      "scope": [
+        "src/**"
+      ],
+      "foundBy": "model",
+      "firstSeen": "2026-11-04T03:36:02.231Z",
+      "facets": {
+        "subject": "card numbers and passwords",
+        "action": "log",
+        "constraint": {
+          "name": "allowed",
+          "op": "never",
+          "value": null,
+          "unit": null
+        }
+      }
+    }
+  ]
+}

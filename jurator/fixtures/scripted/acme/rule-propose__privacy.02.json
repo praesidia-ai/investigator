@@ -1,0 +1,15 @@
+{
+  "feasible": true,
+  "reason": "exportableNotes is the one filter exports use; it must drop notes with deletedAt or archivedAt set.",
+  "violationExamples": [],
+  "keptExamples": [],
+  "mode": "must-match",
+  "pattern": "deletedAt\\s*===\\s*null\\b.*\\barchivedAt\\s*===\\s*null\\b",
+  "flags": null,
+  "anchor": null,
+  "within": null,
+  "globs": [
+    "src/export/**"
+  ],
+  "description": "The export filter keeps only notes that are neither deleted nor archived."
+}

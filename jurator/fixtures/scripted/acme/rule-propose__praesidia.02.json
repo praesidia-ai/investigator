@@ -1,0 +1,13 @@
+{
+  "feasible": false,
+  "reason": "search_notes has no approval call in the code today and Praesidia may approve it at runtime; a rule would fail at once, so it stays on AI reads.",
+  "violationExamples": [],
+  "keptExamples": [],
+  "mode": null,
+  "pattern": null,
+  "flags": null,
+  "anchor": null,
+  "within": null,
+  "globs": [],
+  "description": null
+}

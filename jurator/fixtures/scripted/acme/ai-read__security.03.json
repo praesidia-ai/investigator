@@ -1,0 +1,8 @@
+{
+  "verdict": "kept",
+  "explanation": "The logger drops password, cardNumber and cvc fields before writing a line.",
+  "citations": [
+    { "path": "src/log.ts", "startLine": 1, "endLine": 1 },
+    { "path": "src/log.ts", "startLine": 5, "endLine": 6 }
+  ]
+}

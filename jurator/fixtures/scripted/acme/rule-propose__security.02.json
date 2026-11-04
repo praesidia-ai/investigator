@@ -1,0 +1,15 @@
+{
+  "feasible": true,
+  "reason": "hashPassword is the only place passwords are hashed; it must keep using argon2.",
+  "violationExamples": [],
+  "keptExamples": [],
+  "mode": "must-match",
+  "pattern": "type:\\s*['\"]argon2(?:id|i|d)?['\"]",
+  "flags": null,
+  "anchor": null,
+  "within": null,
+  "globs": [
+    "src/auth/**"
+  ],
+  "description": "Password hashing in src/auth/ asks for an argon2 hash type."
+}

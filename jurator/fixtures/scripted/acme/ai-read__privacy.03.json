@@ -1,0 +1,7 @@
+{
+  "verdict": "kept",
+  "explanation": "No code shown sends notes to an outside service; the export route logs only the count and returns notes to the caller.",
+  "citations": [
+    { "path": "src/routes/export.ts", "startLine": 11, "endLine": 12 }
+  ]
+}

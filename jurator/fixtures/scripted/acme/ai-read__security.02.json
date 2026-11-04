@@ -1,0 +1,7 @@
+{
+  "verdict": "kept",
+  "explanation": "hashPassword hashes with argon2id before anything is stored, and checkPassword compares against the stored hash.",
+  "citations": [
+    { "path": "src/auth/passwords.ts", "startLine": 3, "endLine": 5 }
+  ]
+}

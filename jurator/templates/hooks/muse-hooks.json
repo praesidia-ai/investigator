@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{COMMAND}} hook run muse{{FLAGS}}",
+            "timeout": 60,
+            "statusMessage": "{{BRAND_NAME}}: checking your promises"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "conflicts": [
+    {
+      "promiseIds": ["privacy.01", "praesidia.01"],
+      "example": "A support chat from 1 March must be deleted by 31 March under the privacy policy (privacy.01), but the Praesidia support agent policy keeps it until 30 May (praesidia.01)."
+    }
+  ]
+}

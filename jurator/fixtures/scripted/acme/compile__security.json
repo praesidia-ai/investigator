@@ -1,0 +1,34 @@
+{
+  "promises": [
+    {
+      "wording": "Only workspace admins can export customer data.",
+      "quote": "Only workspace admins can export customer data.",
+      "kind": "must",
+      "checkable": "code",
+      "scope": ["src/routes/**", "src/export/**"],
+      "params": [],
+      "sameAs": null,
+      "facets": {"subject": "customer data", "action": "export", "constraint": {"name": "role", "op": "==", "value": "admin", "unit": null}}
+    },
+    {
+      "wording": "Passwords are hashed with argon2 and never stored in plain text.",
+      "quote": "Passwords are hashed with argon2 and are never stored in plain text.",
+      "kind": "must",
+      "checkable": "code",
+      "scope": ["src/auth/**"],
+      "params": [],
+      "sameAs": null,
+      "facets": {"subject": "passwords", "action": "hash", "constraint": {"name": "algorithm", "op": "==", "value": "argon2", "unit": null}}
+    },
+    {
+      "wording": "Card numbers and passwords are never written to logs.",
+      "quote": "We never write card numbers or passwords to logs.",
+      "kind": "must-not",
+      "checkable": "code",
+      "scope": ["src/**"],
+      "params": [],
+      "sameAs": null,
+      "facets": {"subject": "card numbers and passwords", "action": "log", "constraint": {"name": "allowed", "op": "never", "value": null, "unit": null}}
+    }
+  ]
+}

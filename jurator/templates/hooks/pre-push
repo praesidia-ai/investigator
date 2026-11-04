@@ -1,0 +1,23 @@
+#!/bin/sh
+# {{BRAND_NAME}} pre-push hook: checks the commits you push against your team's promises.
+# Rules only: no AI, no network, a few seconds. Installed by `{{BRAND_COMMAND}} hook install pre-push`.
+# It blocks the push when a rule proves a promise is broken and the fail mode is "block".
+# If a rule errors or times out, or {{BRAND_NAME}} cannot run: the push goes ahead with a warning, unless
+# fail-closed is on ({{FAIL_CLOSED_ENV}}=1, or `hook install pre-push --fail-closed`); then it is blocked.
+# Delete this file to turn it off.
+{{FAIL_CLOSED_ENV}}={{FAIL_CLOSED}}
+export {{FAIL_CLOSED_ENV}}
+JURATOR_NODE={{NODE}}
+JURATOR_BIN={{BIN}}
+if [ -x "$JURATOR_NODE" ] && [ -f "$JURATOR_BIN" ]; then
+  exec "$JURATOR_NODE" "$JURATOR_BIN" hook run pre-push "$@"
+fi
+if command -v {{BRAND_COMMAND}} >/dev/null 2>&1; then
+  exec {{BRAND_COMMAND}} hook run pre-push "$@"
+fi
+if [ "${{FAIL_CLOSED_ENV}}" = 1 ]; then
+  echo "{{BRAND_COMMAND}}: not found, so this push cannot be checked; blocked (fail-closed is on)." >&2
+  exit 1
+fi
+echo "WARNING: {{BRAND_COMMAND}} not found, so this push is NOT checked." >&2
+exit 0

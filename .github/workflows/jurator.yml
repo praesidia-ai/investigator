@@ -1,0 +1,32 @@
+name: Jurator checks
+
+on:
+  push:
+    paths: ['jurator/**', '.github/workflows/jurator.yml']
+  pull_request:
+    paths: ['jurator/**', '.github/workflows/jurator.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [22, 24, 26]
+    defaults:
+      run:
+        working-directory: jurator
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+          cache-dependency-path: jurator/package-lock.json
+      - run: git config --global user.name "CI" && git config --global user.email "ci@example.com"
+      - run: npm ci
+      - run: npm run check
+      - name: Offline end-to-end demo (recorded model answers)
+        run: bash scripts/demo.sh --clean

@@ -1,0 +1,54 @@
+{
+  "promises": [
+    {
+      "wording": "Support chats are deleted after 30 days.",
+      "quote": "Support chats are deleted after 30 days.",
+      "kind": "must",
+      "checkable": "code",
+      "scope": ["src/agent/**"],
+      "params": [{"name": "retentionDays", "value": "30", "unit": "days"}],
+      "sameAs": null,
+      "facets": {"subject": "support chats", "action": "keep", "constraint": {"name": "retention", "op": "<=", "value": "30", "unit": "days"}}
+    },
+    {
+      "wording": "Exports never include deleted or archived notes.",
+      "quote": "Exports never include deleted or archived notes.",
+      "kind": "must-not",
+      "checkable": "code",
+      "scope": ["src/export/**", "src/routes/export.ts"],
+      "params": [],
+      "sameAs": null,
+      "facets": {"subject": "deleted or archived notes", "action": "include in exports", "constraint": {"name": "allowed", "op": "never", "value": null, "unit": null}}
+    },
+    {
+      "wording": "Notes are never sold or shared with advertisers or data brokers.",
+      "quote": "We never sell your notes or share them with advertisers or data brokers.",
+      "kind": "must-not",
+      "checkable": "code",
+      "scope": ["src/export/**", "src/routes/**"],
+      "params": [],
+      "sameAs": null,
+      "facets": {"subject": "notes", "action": "sell or share with advertisers or data brokers", "constraint": {"name": "allowed", "op": "never", "value": null, "unit": null}}
+    },
+    {
+      "wording": "Users are told within 72 hours of a breach that affects their data.",
+      "quote": "We tell you within 72 hours of a breach that affects your data.",
+      "kind": "must",
+      "checkable": "process",
+      "scope": [],
+      "params": [{"name": "breachNoticeHours", "value": "72", "unit": "hours"}],
+      "sameAs": null,
+      "facets": {"subject": "data breaches", "action": "notify users", "constraint": {"name": "deadline", "op": "<=", "value": "72", "unit": "hours"}}
+    },
+    {
+      "wording": "Deleted notes are removed from backups within 30 days.",
+      "quote": "Deleted notes are removed from backups within 30 days.",
+      "kind": "must",
+      "checkable": "code",
+      "scope": [],
+      "params": [{"name": "backupPurgeDays", "value": "30", "unit": "days"}],
+      "sameAs": null,
+      "facets": {"subject": "deleted notes", "action": "remove from backups", "constraint": {"name": "deadline", "op": "<=", "value": "30", "unit": "days"}}
+    }
+  ]
+}

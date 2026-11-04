@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "id": "privacy.01",
+      "status": "accepted",
+      "wording": "Support chats are deleted after 30 days.",
+      "quote": {
+        "alias": "privacy",
+        "policySha256": "bc5c88d02838a0980e01c2ea538c5fee842c22b4707a060d4743e5f1ebc57ca0",
+        "text": "Support chats are deleted after 30 days.",
+        "start": 82,
+        "end": 122,
+        "line": 7
+      },
+      "kind": "must",
+      "checkable": "code",
+      "scope": [
+        "src/agent/**"
+      ],
+      "params": [
+        {
+          "name": "retentionDays",
+          "value": "30",
+          "unit": "days"
+        }
+      ],
+      "foundBy": "model",
+      "firstSeen": "2026-11-04T03:36:02.231Z"
+    },
+    {
+      "id": "privacy.02",
+      "status": "accepted",
+      "wording": "Exports never include deleted or archived notes.",
+      "quote": {
+        "alias": "privacy",
+        "policySha256": "bc5c88d02838a0980e01c2ea538c5fee842c22b4707a060d4743e5f1ebc57ca0",
+        "text": "Exports never include deleted or archived notes.",
+        "start": 126,
+        "end": 174,
+        "line": 8
+      },
+      "kind": "must-not",
+      "checkable": "code",
+      "scope": [
+        "src/export/**",
+        "src/routes/export.ts"
+      ],
+      "foundBy": "model",
+      "firstSeen": "2026-11-04T03:36:02.231Z"
+    },
+    {
+      "id": "privacy.03",
+      "status": "accepted",
+      "wording": "Notes are never sold or shared with advertisers.",
+      "quote": {
+        "alias": "privacy",
+        "policySha256": "bc5c88d02838a0980e01c2ea538c5fee842c22b4707a060d4743e5f1ebc57ca0",
+        "text": "We never sell your notes or share them with advertisers.",
+        "start": 178,
+        "end": 234,
+        "line": 9
+      },
+      "kind": "must-not",
+      "checkable": "code",
+      "scope": [
+        "src/export/**",
+        "src/routes/**"
+      ],
+      "foundBy": "model",
+      "firstSeen": "2026-11-04T03:36:02.231Z"
+    },
+    {
+      "id": "privacy.04",
+      "status": "accepted",
+      "wording": "Users are told within 72 hours of a breach that affects their data.",
+      "quote": {
+        "alias": "privacy",
+        "policySha256": "bc5c88d02838a0980e01c2ea538c5fee842c22b4707a060d4743e5f1ebc57ca0",
+        "text": "We tell you within 72 hours of a breach that affects your data.",
+        "start": 267,
+        "end": 330,
+        "line": 13
+      },
+      "kind": "must",
+      "checkable": "process",
+      "scope": [],
+      "params": [
+        {
+          "name": "breachNoticeHours",
+          "value": "72",
+          "unit": "hours"
+        }
+      ],
+      "foundBy": "model",
+      "firstSeen": "2026-11-04T03:36:02.231Z"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "evasions": [
+    {
+      "path": "src/agent/chats.ts",
+      "find": "  return now.getTime() - createdAt.getTime() > CHAT_TTL_DAYS * 24 * 60 * 60 * 1000;",
+      "replace": "  return now.getTime() - createdAt.getTime() > 365 * 24 * 60 * 60 * 1000;",
+      "why": "isExpired stops using CHAT_TTL_DAYS and keeps chats for a year, but the constant still reads 30, so the rule passes."
+    },
+    {
+      "path": "src/agent/chats.ts",
+      "find": "export const CHAT_TTL_DAYS = 30;",
+      "replace": "export const CHAT_TTL_DAYS = 90;",
+      "why": "Plain change of the value; the rule should catch this one."
+    },
+    {
+      "path": "src/agent/missing.ts",
+      "find": "CHAT_TTL_DAYS = 30;",
+      "replace": "CHAT_TTL_DAYS = 31;",
+      "why": "Edits a file that does not exist, so the program cannot apply it."
+    }
+  ]
+}

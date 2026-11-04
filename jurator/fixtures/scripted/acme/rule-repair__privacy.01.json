@@ -1,0 +1,15 @@
+{
+  "feasible": true,
+  "reason": "isExpired must compare against CHAT_TTL_DAYS, so a hard-coded lifetime fails.",
+  "violationExamples": [],
+  "keptExamples": [],
+  "mode": "must-match",
+  "pattern": ">\\s*CHAT_TTL_DAYS\\s*\\*",
+  "flags": null,
+  "anchor": null,
+  "within": null,
+  "globs": [
+    "src/agent/**"
+  ],
+  "description": "The chat expiry check compares against CHAT_TTL_DAYS."
+}

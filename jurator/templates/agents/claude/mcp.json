@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "jurator": {
+      "type": "stdio",
+      "command": "jurator",
+      "args": ["mcp"]
+    }
+  }
+}
