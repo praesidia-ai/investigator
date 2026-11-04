@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "id": "praesidia.01",
+      "status": "accepted",
+      "wording": "Data is kept for at most 90 days.",
+      "quote": {
+        "alias": "praesidia",
+        "policySha256": "a1401f3743191281b396cb851f700c198548d40ace9fc2594a534d9fbeb6d8f9",
+        "text": "90",
+        "line": 5,
+        "jsonPointer": "/dataRetentionDays"
+      },
+      "kind": "must",
+      "checkable": "code",
+      "scope": [],
+      "params": [
+        {
+          "name": "dataRetentionDays",
+          "value": "90",
+          "unit": "days"
+        }
+      ],
+      "foundBy": "structured",
+      "firstSeen": "2026-11-04T03:36:02.231Z"
+    },
+    {
+      "id": "praesidia.02",
+      "status": "accepted",
+      "wording": "search_notes needs approval before it runs.",
+      "quote": {
+        "alias": "praesidia",
+        "policySha256": "a1401f3743191281b396cb851f700c198548d40ace9fc2594a534d9fbeb6d8f9",
+        "text": "\"search_notes\"",
+        "line": 6,
+        "jsonPointer": "/allowedTools/0"
+      },
+      "kind": "must",
+      "checkable": "code",
+      "scope": [],
+      "params": [
+        {
+          "name": "tool",
+          "value": "search_notes"
+        }
+      ],
+      "foundBy": "structured",
+      "firstSeen": "2026-11-04T03:36:02.231Z"
+    },
+    {
+      "id": "praesidia.03",
+      "status": "accepted",
+      "wording": "export_notes needs approval before it runs.",
+      "quote": {
+        "alias": "praesidia",
+        "policySha256": "a1401f3743191281b396cb851f700c198548d40ace9fc2594a534d9fbeb6d8f9",
+        "text": "\"export_notes\"",
+        "line": 6,
+        "jsonPointer": "/allowedTools/1"
+      },
+      "kind": "must",
+      "checkable": "code",
+      "scope": [],
+      "params": [
+        {
+          "name": "tool",
+          "value": "export_notes"
+        }
+      ],
+      "foundBy": "structured",
+      "firstSeen": "2026-11-04T03:36:02.231Z"
+    },
+    {
+      "id": "praesidia.04",
+      "status": "accepted",
+      "wording": "Personal data is blocked from agent output.",
+      "quote": {
+        "alias": "praesidia",
+        "policySha256": "a1401f3743191281b396cb851f700c198548d40ace9fc2594a534d9fbeb6d8f9",
+        "text": "true",
+        "line": 8,
+        "jsonPointer": "/blockPii"
+      },
+      "kind": "must",
+      "checkable": "runtime",
+      "scope": [],
+      "foundBy": "structured",
+      "firstSeen": "2026-11-04T03:36:02.231Z"
+    }
+  ]
+}

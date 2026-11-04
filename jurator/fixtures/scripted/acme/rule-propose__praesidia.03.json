@@ -1,0 +1,15 @@
+{
+  "feasible": true,
+  "reason": "The export_notes tool must ask Praesidia for approval before it runs.",
+  "violationExamples": [],
+  "keptExamples": [],
+  "mode": "must-match",
+  "pattern": "approvalGate\\(\\s*['\"]export_notes['\"]",
+  "flags": null,
+  "anchor": null,
+  "within": null,
+  "globs": [
+    "src/agent/**"
+  ],
+  "description": "The export_notes agent tool calls approvalGate('export_notes') before running."
+}

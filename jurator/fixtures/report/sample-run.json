@@ -1,0 +1,282 @@
+{
+  "schemaVersion": 1,
+  "id": "20261104T033604Z-74cf09b",
+  "toolVersion": "0.1.0",
+  "createdAt": "2026-11-04T03:36:04.336Z",
+  "snapshot": {
+    "repo": "acme-notes",
+    "branch": "feature/csv-export",
+    "commit": "74cf09ba7ad36055911e01e98e7f1e6b274bc24c",
+    "dirty": false
+  },
+  "target": {
+    "kind": "diff",
+    "base": "main",
+    "head": "74cf09ba7ad36055911e01e98e7f1e6b274bc24c",
+    "changedFiles": [
+      "src/routes/export.ts"
+    ]
+  },
+  "failMode": "block",
+  "status": "completed",
+  "results": [
+    {
+      "promiseId": "praesidia.01",
+      "wording": "Data is kept for at most 90 days.",
+      "verdict": "looks-kept",
+      "level": "ai-read",
+      "citations": [
+        {
+          "path": "src/agent/chats.ts",
+          "commit": "74cf09ba7ad36055911e01e98e7f1e6b274bc24c",
+          "startLine": 1,
+          "endLine": 2,
+          "quote": "/** Support chats older than this are deleted by the nightly job. */\nexport const CHAT_TTL_DAYS = 30;"
+        }
+      ],
+      "policyQuote": {
+        "alias": "praesidia",
+        "policySha256": "a1401f3743191281b396cb851f700c198548d40ace9fc2594a534d9fbeb6d8f9",
+        "text": "90",
+        "line": 5,
+        "jsonPointer": "/dataRetentionDays"
+      },
+      "explanation": "Support chats expire after CHAT_TTL_DAYS days, which is set within the 90-day limit; the nightly job deletes older chats.",
+      "model": {
+        "id": "scripted",
+        "mode": "scripted",
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "usd": 0
+      }
+    },
+    {
+      "promiseId": "praesidia.02",
+      "wording": "search_notes needs approval before it runs.",
+      "verdict": "cant-tell",
+      "level": "ai-read",
+      "citations": [
+        {
+          "path": "src/agent/tools.ts",
+          "commit": "74cf09ba7ad36055911e01e98e7f1e6b274bc24c",
+          "startLine": 5,
+          "endLine": 5,
+          "quote": "  search_notes: async (query: string) => ({ query, results: [] as string[] }),"
+        }
+      ],
+      "policyQuote": {
+        "alias": "praesidia",
+        "policySha256": "a1401f3743191281b396cb851f700c198548d40ace9fc2594a534d9fbeb6d8f9",
+        "text": "\"search_notes\"",
+        "line": 6,
+        "jsonPointer": "/allowedTools/0"
+      },
+      "explanation": "search_notes runs without calling approvalGate in the code shown; approval may be enforced by Praesidia at runtime instead.",
+      "model": {
+        "id": "scripted",
+        "mode": "scripted",
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "usd": 0
+      }
+    },
+    {
+      "promiseId": "praesidia.03",
+      "wording": "export_notes needs approval before it runs.",
+      "verdict": "holds",
+      "level": "rule",
+      "citations": [
+        {
+          "path": "src/agent/tools.ts",
+          "commit": "74cf09ba7ad36055911e01e98e7f1e6b274bc24c",
+          "startLine": 7,
+          "endLine": 7,
+          "quote": "    await approvalGate('export_notes', { workspaceId });"
+        }
+      ],
+      "policyQuote": {
+        "alias": "praesidia",
+        "policySha256": "a1401f3743191281b396cb851f700c198548d40ace9fc2594a534d9fbeb6d8f9",
+        "text": "\"export_notes\"",
+        "line": 6,
+        "jsonPointer": "/allowedTools/1"
+      },
+      "ruleResults": [
+        {
+          "ruleId": "R-praesidia.03-1",
+          "promiseId": "praesidia.03",
+          "outcome": "pass",
+          "hits": [
+            {
+              "path": "src/agent/tools.ts",
+              "commit": "74cf09ba7ad36055911e01e98e7f1e6b274bc24c",
+              "startLine": 7,
+              "endLine": 7,
+              "quote": "    await approvalGate('export_notes', { workspaceId });"
+            }
+          ],
+          "message": "/approvalGate\\(\\s*['\"]export_notes['\"]/ found at src/agent/tools.ts:7"
+        }
+      ],
+      "explanation": "/approvalGate\\(\\s*['\"]export_notes['\"]/ found at src/agent/tools.ts:7"
+    },
+    {
+      "promiseId": "privacy.02",
+      "wording": "Exports never include deleted or archived notes.",
+      "verdict": "holds",
+      "level": "rule",
+      "citations": [
+        {
+          "path": "src/export/query.ts",
+          "commit": "74cf09ba7ad36055911e01e98e7f1e6b274bc24c",
+          "startLine": 5,
+          "endLine": 5,
+          "quote": "  return all.filter((n) => n.workspaceId === workspaceId && n.deletedAt === null && n.archivedAt === null);"
+        }
+      ],
+      "policyQuote": {
+        "alias": "privacy",
+        "policySha256": "bc5c88d02838a0980e01c2ea538c5fee842c22b4707a060d4743e5f1ebc57ca0",
+        "text": "Exports never include deleted or archived notes.",
+        "start": 126,
+        "end": 174,
+        "line": 8
+      },
+      "ruleResults": [
+        {
+          "ruleId": "R-privacy.02-1",
+          "promiseId": "privacy.02",
+          "outcome": "pass",
+          "hits": [
+            {
+              "path": "src/export/query.ts",
+              "commit": "74cf09ba7ad36055911e01e98e7f1e6b274bc24c",
+              "startLine": 5,
+              "endLine": 5,
+              "quote": "  return all.filter((n) => n.workspaceId === workspaceId && n.deletedAt === null && n.archivedAt === null);"
+            }
+          ],
+          "message": "/deletedAt\\s*===\\s*null\\b.*\\barchivedAt\\s*===\\s*null\\b/ found at src/export/query.ts:5"
+        }
+      ],
+      "explanation": "/deletedAt\\s*===\\s*null\\b.*\\barchivedAt\\s*===\\s*null\\b/ found at src/export/query.ts:5"
+    },
+    {
+      "promiseId": "privacy.03",
+      "wording": "Notes are never sold or shared with advertisers.",
+      "verdict": "looks-kept",
+      "level": "ai-read",
+      "citations": [
+        {
+          "path": "src/routes/export.ts",
+          "commit": "74cf09ba7ad36055911e01e98e7f1e6b274bc24c",
+          "startLine": 11,
+          "endLine": 12,
+          "quote": "  log('export', { workspaceId: req.workspaceId, count: notes.length });\n  res.send(JSON.stringify(notes));"
+        }
+      ],
+      "policyQuote": {
+        "alias": "privacy",
+        "policySha256": "bc5c88d02838a0980e01c2ea538c5fee842c22b4707a060d4743e5f1ebc57ca0",
+        "text": "We never sell your notes or share them with advertisers.",
+        "start": 178,
+        "end": 234,
+        "line": 9
+      },
+      "explanation": "No code shown sends notes to an outside service; the export route logs only the count and returns notes to the caller.",
+      "model": {
+        "id": "scripted",
+        "mode": "scripted",
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "usd": 0
+      }
+    },
+    {
+      "promiseId": "security.01",
+      "wording": "Only workspace admins can export customer data.",
+      "verdict": "broken",
+      "level": "rule",
+      "citations": [
+        {
+          "path": "src/routes/export.ts",
+          "commit": "74cf09ba7ad36055911e01e98e7f1e6b274bc24c",
+          "startLine": 15,
+          "endLine": 15,
+          "quote": "router.get('/export.csv', async (req, res) => {"
+        }
+      ],
+      "policyQuote": {
+        "alias": "security",
+        "policySha256": "d17a986aa1c9e3f97a56c9bc6042a42c4356258e3514fbd7557cac24cf287385",
+        "text": "Only workspace admins can export customer data.",
+        "start": 32,
+        "end": 79,
+        "line": 3
+      },
+      "ruleResults": [
+        {
+          "ruleId": "R-security.01-1",
+          "promiseId": "security.01",
+          "outcome": "fail",
+          "hits": [
+            {
+              "path": "src/routes/export.ts",
+              "commit": "74cf09ba7ad36055911e01e98e7f1e6b274bc24c",
+              "startLine": 15,
+              "endLine": 15,
+              "quote": "router.get('/export.csv', async (req, res) => {"
+            }
+          ],
+          "message": "src/routes/export.ts:15 has router.get('/export with no requireAdmin( within 3 lines"
+        }
+      ],
+      "explanation": "src/routes/export.ts:15 has router.get('/export with no requireAdmin( within 3 lines"
+    },
+    {
+      "promiseId": "security.03",
+      "wording": "Card numbers and passwords are never written to logs.",
+      "verdict": "holds",
+      "level": "rule",
+      "citations": [],
+      "policyQuote": {
+        "alias": "security",
+        "policySha256": "d17a986aa1c9e3f97a56c9bc6042a42c4356258e3514fbd7557cac24cf287385",
+        "text": "We never write card numbers or passwords to logs.",
+        "start": 153,
+        "end": 202,
+        "line": 5
+      },
+      "ruleResults": [
+        {
+          "ruleId": "R-security.03-1",
+          "promiseId": "security.03",
+          "outcome": "pass",
+          "hits": [],
+          "message": "no line in 11 files under src/**/*.ts has /\\b(?:log|logger\\.\\w+|console\\.\\w+)\\([^)]*\\b(?:password|cardNumber|card_number)\\b/"
+        }
+      ],
+      "explanation": "no line in 11 files under src/**/*.ts has /\\b(?:log|logger\\.\\w+|console\\.\\w+)\\([^)]*\\b(?:password|cardNumber|card_number)\\b/"
+    }
+  ],
+  "checklist": [
+    {
+      "promiseId": "privacy.04",
+      "text": "Before merge: Users are told within 72 hours of a breach that affects their data."
+    }
+  ],
+  "summary": {
+    "promises": 11,
+    "checked": 7,
+    "holds": 3,
+    "broken": 1,
+    "looksKept": 2,
+    "looksBroken": 0,
+    "cantTell": 1,
+    "notChecked": 0,
+    "coveredByRules": 6,
+    "codePromises": 9
+  },
+  "costUsd": 0,
+  "digest": "4ea913541383a8719ddb27e30ee29c03d2c948a362b089fb482786b6a14520a0"
+}

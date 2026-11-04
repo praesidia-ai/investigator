@@ -1,0 +1,5 @@
+{
+  "verdict": "broken",
+  "explanation": "isExpired in src/agent/chats.ts compares against 365 days instead of CHAT_TTL_DAYS, so support chats are kept for a year, not 30 days.",
+  "citations": [{ "path": "src/agent/chats.ts", "startLine": 5, "endLine": 5 }]
+}

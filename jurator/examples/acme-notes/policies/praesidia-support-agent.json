@@ -1,0 +1,9 @@
+{
+  "name": "Support agent policy",
+  "version": 7,
+  "enforcementMode": "enforce",
+  "dataRetentionDays": 90,
+  "allowedTools": ["search_notes", "export_notes"],
+  "requireApproval": true,
+  "blockPii": true
+}

@@ -91,7 +91,7 @@ Each ordinary approval-control investigation permits 8 model turns, 12 tool call
 limits include reasoning output and are not monetary-cost guarantees; input also incurs usage.
 Unknown usage stays unknown. [Reasoning controls](https://dev.meta.ai/docs/reasoning).
 
-Each cancellation investigation permits 28 model turns, 32 tool calls, 65,536 generated tokens
+Each cancellation investigation permits 28 model turns, 40 tool calls (several per turn), 65,536 generated tokens
 total, 4,096 per call and a 180-second deadline for exact witness reads and four finite experiments.
 The workflow may run a separate after-change investigation, and trials run
 multiple baseline investigations; do not treat a per-investigation token limit as the total cost cap.

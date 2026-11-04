@@ -1,0 +1,5 @@
+{
+  "summary": "Support chats are kept for 90 days: CHAT_TTL_DAYS in src/agent/chats.ts is set to 90, while the policy promises chats are deleted after 30 days.",
+  "toFix": "Set CHAT_TTL_DAYS in src/agent/chats.ts back to 30 days or less.",
+  "note": null
+}

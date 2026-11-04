@@ -1,0 +1,7 @@
+{
+  "verdict": "kept",
+  "explanation": "The export_notes tool awaits approvalGate('export_notes') before it queues the export.",
+  "citations": [
+    { "path": "src/agent/tools.ts", "startLine": 6, "endLine": 7 }
+  ]
+}

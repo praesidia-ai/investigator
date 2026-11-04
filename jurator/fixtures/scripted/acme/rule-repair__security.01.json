@@ -1,0 +1,17 @@
+{
+  "feasible": true,
+  "reason": "Every export route must call requireAdmin(...) as a statement of its own, so a guard wrapped in try/catch, or a new export route without one, fails.",
+  "violationExamples": [
+    "router.post('/export/all', async (req, res) => {"
+  ],
+  "keptExamples": [],
+  "mode": "each-near",
+  "pattern": "^\\s*(?:await\\s+)?requireAdmin\\(\\s*\\w+\\s*\\);",
+  "flags": null,
+  "anchor": "router\\.\\w+\\(\\s*['\"`][^'\"`]*export",
+  "within": 3,
+  "globs": [
+    "src/routes/**"
+  ],
+  "description": "Every route whose path mentions export calls requireAdmin(...) as its own statement within 3 lines."
+}

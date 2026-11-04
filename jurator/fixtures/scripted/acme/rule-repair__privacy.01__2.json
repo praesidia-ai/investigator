@@ -1,0 +1,13 @@
+{
+  "feasible": false,
+  "reason": "Cannot close: one pattern cannot check both that CHAT_TTL_DAYS is 30 or less and that isExpired uses it; that needs a second rule for the same promise.",
+  "violationExamples": [],
+  "keptExamples": [],
+  "mode": null,
+  "pattern": null,
+  "flags": null,
+  "anchor": null,
+  "within": null,
+  "globs": [],
+  "description": null
+}

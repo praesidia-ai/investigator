@@ -1,0 +1,5 @@
+{
+  "summary": "No rule can check this today: search_notes has no approval call in the code, and Praesidia may ask for approval at runtime, so a rule would fail at once.",
+  "toFix": "Decide where approval for search_notes happens; if it belongs in the code, add the approval call, then ask for a rule again.",
+  "note": null
+}

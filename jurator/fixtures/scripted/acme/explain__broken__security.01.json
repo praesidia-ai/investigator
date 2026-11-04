@@ -1,0 +1,5 @@
+{
+  "summary": "The new GET /export.csv route in src/routes/export.ts sends customer data without calling requireAdmin, so any signed-in user can export it, not only workspace admins.",
+  "toFix": "Call requireAdmin(req) at the start of the /export.csv handler, as the existing export route does.",
+  "note": null
+}

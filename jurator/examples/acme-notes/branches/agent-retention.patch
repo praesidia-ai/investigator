@@ -1,0 +1,20 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Coding agent <agent@example.com>
+Date: Wed, 4 Nov 2026 05:01:27 +0200
+Subject: [PATCH] Keep support chats for 90 days to match the agent policy
+
+---
+ src/agent/chats.ts | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/agent/chats.ts b/src/agent/chats.ts
+index dfcbfa6..0c5a903 100644
+--- a/src/agent/chats.ts
++++ b/src/agent/chats.ts
+@@ -1,5 +1,5 @@
+ /** Support chats older than this are deleted by the nightly job. */
+-export const CHAT_TTL_DAYS = 30;
++export const CHAT_TTL_DAYS = 90;
+ 
+ export function isExpired(createdAt: Date, now: Date): boolean {
+   return now.getTime() - createdAt.getTime() > CHAT_TTL_DAYS * 24 * 60 * 60 * 1000;

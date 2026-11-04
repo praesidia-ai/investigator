@@ -1,0 +1,20 @@
+{
+  "locations": [
+    {
+      "name": "SECRET_KEYS",
+      "path": "src/log.ts",
+      "startLine": 1,
+      "endLine": 1,
+      "kind": "allowlist",
+      "why": "SECRET_KEYS lists the fields the logger drops; removing password or cardNumber from it would write them to the logs."
+    },
+    {
+      "name": "SECRET_KEYS",
+      "path": "src/log.ts",
+      "startLine": 5,
+      "endLine": 5,
+      "kind": "guard",
+      "why": "This filter is where the logger drops the secret fields before writing."
+    }
+  ]
+}

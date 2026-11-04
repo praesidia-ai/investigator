@@ -144,6 +144,7 @@ const requestSchema = z.object({
     .optional(),
   maxOutputTokens: outputTokenLimitSchema.optional(),
   reasoningEffort: reasoningEffortSchema.optional(),
+  parallelToolCalls: z.boolean().optional(),
 });
 
 const trustedFailures = new WeakSet<InvestigatorError>();
@@ -342,7 +343,7 @@ function prepare(
     include: ['reasoning.encrypted_content'],
     stream: false,
     tool_choice: 'auto',
-    parallel_tool_calls: false,
+    parallel_tool_calls: data.parallelToolCalls ?? false,
     max_output_tokens: data.maxOutputTokens ?? defaults.maxOutputTokens,
     reasoning: { effort: data.reasoningEffort ?? defaults.reasoningEffort },
     ...(data.outputFormat

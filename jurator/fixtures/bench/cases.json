@@ -1,0 +1,144 @@
+{
+  "schemaVersion": 1,
+  "repo": "acme-notes",
+  "baseline": "acme-notes",
+  "commit": "38318723b67bdc37ea69ec9bf972a2f3ee9f00bb",
+  "codeScope": [
+    "src/**"
+  ],
+  "policies": [
+    {
+      "alias": "privacy",
+      "path": "docs/privacy.md"
+    },
+    {
+      "alias": "security",
+      "path": "docs/security.md"
+    },
+    {
+      "alias": "praesidia",
+      "path": "policies/praesidia-support-agent.json"
+    }
+  ],
+  "cases": [
+    {
+      "id": "B1",
+      "kind": "break",
+      "title": "Keep support chats for 90 days",
+      "breaks": [
+        "privacy.01"
+      ],
+      "edits": [
+        {
+          "path": "src/agent/chats.ts",
+          "find": "CHAT_TTL_DAYS = 30;",
+          "replace": "CHAT_TTL_DAYS = 90;"
+        }
+      ]
+    },
+    {
+      "id": "B2",
+      "kind": "break",
+      "title": "New CSV export route without the admin check",
+      "breaks": [
+        "security.01"
+      ],
+      "edits": [
+        {
+          "path": "src/routes/export.ts",
+          "find": "",
+          "replace": "\nrouter.get('/export.csv', async (req, res) => {\n  const notes = exportableNotes(db.notes, req.workspaceId);\n  res.send(notes.map((n) => `${n.id},${JSON.stringify(n.body)}`).join('\\n'));\n});\n"
+        }
+      ]
+    },
+    {
+      "id": "B3",
+      "kind": "break",
+      "title": "Exports start to include archived notes",
+      "breaks": [
+        "privacy.02"
+      ],
+      "edits": [
+        {
+          "path": "src/export/query.ts",
+          "find": "n.deletedAt === null && n.archivedAt === null",
+          "replace": "n.deletedAt === null"
+        }
+      ]
+    },
+    {
+      "id": "B4",
+      "kind": "break",
+      "title": "Chat lifetime written as 30 * 3 (90 days)",
+      "breaks": [
+        "privacy.01"
+      ],
+      "edits": [
+        {
+          "path": "src/agent/chats.ts",
+          "find": "CHAT_TTL_DAYS = 30;",
+          "replace": "CHAT_TTL_DAYS = 30 * 3;"
+        }
+      ]
+    },
+    {
+      "id": "B5",
+      "kind": "break",
+      "title": "Notes sent to an ad partner",
+      "breaks": [
+        "privacy.03"
+      ],
+      "edits": [
+        {
+          "path": "src/routes/notes.ts",
+          "find": "import { router } from '../http.js';\n\nrouter.get('/notes', async (req, res) => {\n",
+          "replace": "import { type Note } from '../export/query.js';\nimport { router } from '../http.js';\n\nconst AD_PARTNER_URL = 'https://collect.adpartner.example/v1/events';\nconst db: { notes: Note[] } = { notes: [] };\n\nrouter.get('/notes', async (req, res) => {\n  const notes = db.notes.filter((n) => n.workspaceId === req.workspaceId);\n  void fetch(AD_PARTNER_URL, { method: 'POST', body: JSON.stringify({ workspaceId: req.workspaceId, notes: notes.map((n) => n.body) }) });\n"
+        }
+      ]
+    },
+    {
+      "id": "H1",
+      "kind": "harmless",
+      "title": "Refactor: name the milliseconds in a day",
+      "breaks": [],
+      "edits": [
+        {
+          "path": "src/agent/chats.ts",
+          "find": "export function isExpired(createdAt: Date, now: Date): boolean {\n  return now.getTime() - createdAt.getTime() > CHAT_TTL_DAYS * 24 * 60 * 60 * 1000;\n}",
+          "replace": "const DAY_MS = 24 * 60 * 60 * 1000;\n\nexport function isExpired(createdAt: Date, now: Date): boolean {\n  return now.getTime() - createdAt.getTime() > CHAT_TTL_DAYS * DAY_MS;\n}"
+        }
+      ]
+    },
+    {
+      "id": "H2",
+      "kind": "harmless",
+      "title": "New admin-only export count route",
+      "breaks": [],
+      "edits": [
+        {
+          "path": "src/routes/export.ts",
+          "find": "",
+          "replace": "\nrouter.get('/export/count', async (req, res) => {\n  requireAdmin(req);\n  res.send(String(exportableNotes(db.notes, req.workspaceId).length));\n});\n"
+        }
+      ]
+    },
+    {
+      "id": "H3",
+      "kind": "harmless",
+      "title": "Log a password-changed event (user id only)",
+      "breaks": [],
+      "edits": [
+        {
+          "path": "src/auth/passwords.ts",
+          "find": "import { hash, verify } from './argon2.js';\n",
+          "replace": "import { hash, verify } from './argon2.js';\nimport { log } from '../log.js';\n"
+        },
+        {
+          "path": "src/auth/passwords.ts",
+          "find": "",
+          "replace": "export async function changePassword(userId: string, plain: string): Promise<string> {\n  const stored = await hashPassword(plain);\n  log('password_changed', { userId });\n  return stored;\n}\n"
+        }
+      ]
+    }
+  ]
+}

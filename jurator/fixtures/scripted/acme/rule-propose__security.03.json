@@ -1,0 +1,17 @@
+{
+  "feasible": true,
+  "reason": "A log call that passes a password or card number field would write it to the logs.",
+  "violationExamples": [
+    "log('login', { email: user.email, password });"
+  ],
+  "keptExamples": [],
+  "mode": "must-not-match",
+  "pattern": "\\b(?:log|logger\\.\\w+|console\\.\\w+)\\([^)]*\\b(?:password|cardNumber|card_number)\\b",
+  "flags": "i",
+  "anchor": null,
+  "within": null,
+  "globs": [
+    "src/**/*.ts"
+  ],
+  "description": "No log call passes a password or card number."
+}

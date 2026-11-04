@@ -33,7 +33,7 @@ const errorSchema = z
 const digest = z.string().regex(/^[a-f0-9]{64}$/);
 export const cancellationEventSchema = z
   .object({
-    sequence: z.number().int().min(1).max(32),
+    sequence: z.number().int().min(1).max(40),
     tool: z.string().min(1).max(160),
     callId: z.string().min(1).max(64),
     argumentsDigest: digest,
@@ -59,7 +59,7 @@ export const cancellationInvestigationSchema = z
     context: clientSystemSnapshotSchema,
     evidence: z.array(evidenceArtifactSchema).min(4).max(16),
     captures: z.array(cancellationCaptureSchema).max(4),
-    events: z.array(cancellationEventSchema).max(32),
+    events: z.array(cancellationEventSchema).max(40),
     status: z.enum(['completed', 'incomplete', 'failed']),
     proposedFinding: cancellationFindingSchema.nullable(),
     finding: cancellationFindingSchema.nullable(),
@@ -360,7 +360,9 @@ export async function investigateCancellation(options: {
               'Only the supervisor acknowledgment/acceptance sequence establishes the boundary. A pre-revocation acceptance is not a rollback failure. Independent authorized work must continue.',
               'Supporting the whole claim requires all four mandatory experiments with complete required capture. A concrete matching post-cut effect can contradict it despite other unknowns.',
               'Missing acknowledgment or unclosed/partial capture cannot prove absence. Source code alone cannot establish an observed behavioral violation.',
-              'Read policy lines 2 through 8. After an experiment, read and cite its entire proof set: /cut, /attempts, /effects, /observation for negative absence; include the matching /effects/N receipt for positive independent/pre-cut work or a late acceptance, plus its matching /attempts/N for a late acceptance. All required witness pointers must have exact saved reads.',
+              'You have at most 40 tool calls in total. Put independent calls in the same turn: request the experiments you need together, then read their witnesses together.',
+              'Read policy lines 2 through 8. Cite only witness pointers you have read exactly. A contradiction needs one late acceptance: its /cut, its /effects/N receipt and its matching /attempts/N. Support needs every mandatory experiment: /cut, /attempts, /effects and /observation for absence; /cut, the independent /effects/N receipt, /attempts and /observation for independent work; the pre-cut /effects/N receipt, /cut and /observation for pre-revocation work.',
+              'Before proposing check-current-root-authority.v1, read and cite worker-source lines 1 through 3.',
               'Return only the specified JSON finding. Give brief user-facing hypothesis and alternative summaries, not private reasoning. nextAction is a proposal; it does not apply a patch.',
             ].join('\n'),
             input,
@@ -372,6 +374,7 @@ export async function investigateCancellation(options: {
               schema: cancellationJsonSchema(cancellationFindingSchema),
             },
             maxOutputTokens: requestedTokens,
+            parallelToolCalls: true,
             ...(options.provider.reasoningEffort
               ? { reasoningEffort: options.provider.reasoningEffort }
               : {}),
@@ -422,7 +425,7 @@ export async function investigateCancellation(options: {
         status = 'completed';
         break;
       }
-      if (events.length + completion.toolCalls.length > 32)
+      if (events.length + completion.toolCalls.length > 40)
         throw new InvestigatorError(
           'TOOL_BUDGET_EXHAUSTED',
           'The investigation exhausted its tool allowance.',

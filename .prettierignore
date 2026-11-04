@@ -5,3 +5,6 @@ LICENSE
 NOTICE
 *.tgz
 cases/
+
+# Jurator is its own package with its own formatting and CI job
+jurator/

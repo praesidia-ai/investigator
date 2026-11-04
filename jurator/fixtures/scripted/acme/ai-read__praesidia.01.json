@@ -1,0 +1,7 @@
+{
+  "verdict": "kept",
+  "explanation": "Support chats expire after CHAT_TTL_DAYS days, which is set within the 90-day limit; the nightly job deletes older chats.",
+  "citations": [
+    { "path": "src/agent/chats.ts", "startLine": 1, "endLine": 2 }
+  ]
+}

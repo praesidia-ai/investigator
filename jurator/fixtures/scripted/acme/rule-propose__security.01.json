@@ -1,0 +1,15 @@
+{
+  "feasible": true,
+  "reason": "Export routes are defined with router.get('/export...'); each one must call requireAdmin( right after, which is how only admins can export.",
+  "violationExamples": [],
+  "keptExamples": [],
+  "mode": "each-near",
+  "pattern": "requireAdmin\\(",
+  "flags": null,
+  "anchor": "router\\.(?:get|post|put|patch|delete)\\(\\s*['\"]/export",
+  "within": 3,
+  "globs": [
+    "src/routes/**"
+  ],
+  "description": "Every export route calls requireAdmin( within 3 lines."
+}

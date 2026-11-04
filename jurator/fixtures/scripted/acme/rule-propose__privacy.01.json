@@ -1,0 +1,15 @@
+{
+  "feasible": true,
+  "reason": "The nightly job deletes support chats older than CHAT_TTL_DAYS, so the constant must stay at 30 days or less.",
+  "violationExamples": [],
+  "keptExamples": [],
+  "mode": "must-match",
+  "pattern": "CHAT_TTL_DAYS\\s*=\\s*(?:[0-9]|[12][0-9]|30)\\b",
+  "flags": null,
+  "anchor": null,
+  "within": null,
+  "globs": [
+    "src/agent/**"
+  ],
+  "description": "The support chat lifetime CHAT_TTL_DAYS is set to 30 days or less."
+}

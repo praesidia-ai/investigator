@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "mcp_servers": {
+    "jurator": {
+      "transport": "stdio",
+      "command": "jurator",
+      "args": ["mcp"],
+      "enabled": true,
+      "mode": "optional"
+    }
+  }
+}

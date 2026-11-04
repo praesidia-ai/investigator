@@ -1,0 +1,22 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Coding agent <agent@example.com>
+Date: Wed, 4 Nov 2026 05:01:27 +0200
+Subject: [PATCH] Add CSV export of all notes
+
+---
+ src/routes/export.ts | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/src/routes/export.ts b/src/routes/export.ts
+index 022e42c..5aff312 100644
+--- a/src/routes/export.ts
++++ b/src/routes/export.ts
+@@ -11,3 +11,8 @@ router.get('/export', async (req, res) => {
+   log('export', { workspaceId: req.workspaceId, count: notes.length });
+   res.send(JSON.stringify(notes));
+ });
++
++router.get('/export.csv', async (req, res) => {
++  const notes = exportableNotes(db.notes, req.workspaceId);
++  res.send(notes.map((n) => `${n.id},${JSON.stringify(n.body)}`).join('\n'));
++});

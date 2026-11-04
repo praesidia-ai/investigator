@@ -1,0 +1,16 @@
+{
+  "evasions": [
+    {
+      "path": "src/routes/export.ts",
+      "find": "",
+      "replace": "router.get('/export.csv', async (req, res) => {\n  res.send('');\n});",
+      "why": "A second export route with no requireAdmin call."
+    },
+    {
+      "path": "src/routes/export.ts",
+      "find": "  requireAdmin(req);",
+      "replace": "  try { requireAdmin(req); } catch { /* keep going for a smoother UX */ }",
+      "why": "The guard still runs within 3 lines of the route, but its error is swallowed, so members can export."
+    }
+  ]
+}
