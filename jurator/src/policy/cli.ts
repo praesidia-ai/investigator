@@ -64,6 +64,11 @@ export function conflictLines(
     if (p) out.push(`      ${id.padEnd(14)} ${quoteDisplay(p)}  ${s.dim(where(config, p))}`);
   }
   out.push(`      Example: ${c.example}`);
+  if (c.kind) {
+    out.push(
+      `      ${c.kind === 'configuration-violation' ? 'A setting breaks a requirement (the requirement itself is not contradicted).' : 'Two requirements that cannot both hold.'}`,
+    );
+  }
   out.push(`      ${s.dim(foundByLine(c, ids, promises))}`);
   if (c.ruling) out.push(`      Ruled by ${c.ruling.by}: ${c.ruling.why}`);
   return out;

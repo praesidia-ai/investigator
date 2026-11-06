@@ -23,6 +23,7 @@ import { evaluateInvestigator } from './evaluation/evaluate.js';
 import { loadClientContext } from './context/load.js';
 import { runAssuranceCli } from './assurance/cli.js';
 import { runCancellationCli } from './cancellation/cli.js';
+import { runInteropCli } from './interop/cli.js';
 import {
   runEvidencePlanWorkflow,
   verifyEvidencePlanReport,
@@ -61,6 +62,10 @@ Usage:
   praesidia-investigator cancellation-demo [--variant cached-worker|current-worker|capture-gap|block-all] [--live] [--out new-directory] [--json]
   praesidia-investigator cancellation-trials [--cases 1..4] [--live] [--out new-directory] [--json]
   praesidia-investigator verify-cancellation <case.json|trials.json> [--json]
+  praesidia-investigator interop-profiles [--json]
+  praesidia-investigator interop-run <request.json> --adapter-config <operator-config.json> --out <new-directory> [--json]
+  praesidia-investigator verify-interop <result.json> [--request request.json] [--json]
+  praesidia-investigator show <case-dir|case.json>
   praesidia-investigator render <report.json> --out new-report.html [--format html|junit]
   praesidia-investigator schema
   praesidia-investigator smoke [--out new-report.json] [--json]
@@ -72,6 +77,7 @@ investigate calls Meta using META_API_KEY (or MODEL_API_KEY), MODEL_ID and optio
 Selected case evidence is sent to that provider. No Praesidia account is required.
 verify checks the supplied manifest and citations, not independently trusted authorship.
 
+interop-run executes only with an operator --adapter-config whose digest matches the request; requests are data, not permission.
 Investigation exit codes: 0 supported, 1 contradicted, 2 incomplete or failed.
 Reports contain selected evidence and never overwrite an existing output file.
 repair-demo patches an isolated copy of the authored HTTP example and retests it.
@@ -113,6 +119,8 @@ function parseOptions(args: readonly string[]) {
         cases: { type: 'string' },
         'target-config': { type: 'string' },
         scripted: { type: 'boolean' },
+        request: { type: 'string' },
+        'adapter-config': { type: 'string' },
       },
     });
   } catch {
@@ -161,6 +169,14 @@ export async function runCli(
       ...(signal ? { signal } : {}),
     });
     if (cancellationCode !== undefined) return cancellationCode;
+    const interopCode = await runInteropCli({
+      command: command!,
+      positionals,
+      values,
+      io,
+      ...(signal ? { signal } : {}),
+    });
+    if (interopCode !== undefined) return interopCode;
     const assuranceCode = await runAssuranceCli({
       command: command!,
       positionals,

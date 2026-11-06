@@ -146,3 +146,52 @@ export {
 export type { CancellationTrials } from './cancellation/evaluate.js';
 export { renderCancellationHtml } from './reports/cancellation-html.js';
 export { assertStrictMetaSchema } from './providers/strict-schema.js';
+export {
+  INTEROP_PROFILES,
+  findInteropProfile,
+  runInteropRequest,
+  readAdapterConfig,
+  adapterConfigDigest,
+  verifyInterop,
+  parseRequest as parseInvestigationRequest,
+  parseResult as parseInvestigationResult,
+  sealRequest as sealInvestigationRequest,
+  sealResult as sealInvestigationResult,
+  InteropError,
+} from './interop/index.js';
+export type {
+  InteropProfile,
+  AdapterConfig,
+  InteropVerification,
+  InvestigationRequest,
+  InvestigationResult,
+} from './interop/index.js';
+export {
+  runCollectors,
+  validateCollection,
+  toAssuranceInventory,
+  localDocumentsCollector,
+  mcpExportCollector,
+  apiExportCollector,
+  collectionResultSchema,
+  collectedOperationSchema,
+  frontierEntrySchema,
+  frontierKindSchema,
+} from './context/collector.js';
+export type {
+  Collector,
+  CollectionResult,
+  MergedCollection,
+  FrontierEntry,
+  CollectedOperation,
+  RelationshipBasis,
+  ApiExportOptions,
+} from './context/collector.js';
+export {
+  importOtelTraces,
+  otelTraceCollector,
+  OTEL_GENAI_PINNED_SCHEMA,
+} from './context/import-otel.js';
+export type { ImportOtelOptions } from './context/import-otel.js';
+export { caseReuse } from './assurance/compare.js';
+export type { CaseReuse } from './assurance/compare.js';

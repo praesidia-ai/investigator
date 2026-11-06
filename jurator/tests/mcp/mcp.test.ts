@@ -56,7 +56,7 @@ describe('jurator mcp over stdio (fakes)', () => {
     const r = await client.callTool('promises_for_change', { files: ['./src/routes/export.ts'] });
     expect(r.isError).toBe(false);
     const items = r.structuredContent?.promises as Array<{ id: string; checkedBy: string; policy: { quote: string; where: string }; rules: Array<{ id: string }> }>;
-    expect(items.map((p) => p.id)).toEqual(['privacy.02', 'security.01', 'security.02']);
+    expect(items.map((p) => p.id)).toEqual(['praesidia.01', 'privacy.02', 'security.01', 'security.02']);
     const sec = items.find((p) => p.id === 'security.01');
     expect(sec).toMatchObject({
       checkedBy: 'rule',
@@ -67,13 +67,15 @@ describe('jurator mcp over stdio (fakes)', () => {
     const text = textOf(r);
     expect(text).toContain('"Only workspace admins can export customer data."  docs/security.md:3');
     expect(text).toContain('never edit .jurator/');
-    // runtime promises (enforced while running) and drafts are not for the coding agent
-    expect(text).not.toContain('praesidia.01');
+    // runtime promises are listed but labeled: enforced while running, not code-checked; drafts stay hidden
+    expect(items.find((p) => p.id === 'praesidia.01')?.checkedBy).toBe('runtime');
+    expect(text).toContain('runtime promise: enforced while running, not code-checked');
+    expect(text).not.toContain('privacy.03');
   });
 
   it('promises_for_change maps an absolute path inside the repo and says when nothing applies', async () => {
     const abs = await client.callTool('promises_for_change', { files: ['/work/acme-notes/src/agent/chats.ts'] });
-    expect((abs.structuredContent?.promises as Array<{ id: string }>).map((p) => p.id)).toEqual(['privacy.01', 'privacy.02']);
+    expect((abs.structuredContent?.promises as Array<{ id: string }>).map((p) => p.id)).toEqual(['praesidia.01', 'privacy.01', 'privacy.02']);
     const none = await client.callTool('promises_for_change', { files: ['README.md'] });
     expect(none.isError).toBe(false);
     expect(textOf(none)).toContain('No accepted promise is about README.md');

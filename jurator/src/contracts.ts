@@ -99,6 +99,25 @@ export const promiseFacetsSchema = z.object({
 });
 export type PromiseFacets = z.infer<typeof promiseFacetsSchema>;
 
+/**
+ * What a promise's facets state and how far it applies. Absent on older records: read as a requirement whose
+ * applicability was never reviewed. Exact quotation does not establish any of these meanings.
+ *  - requirement: a limit that must hold · configuration: a value a system is set to · observation: a value seen running.
+ *  - interpretation (configuration only): a source field either records the set value or declares a maximum; 'unresolved'
+ *    when the source does not say, and the program must not pick one.
+ *  - tenant/resource: scoped identity; null = not stated. Same-named data in different tenants is not the same entity.
+ *  - applicability: 'ambiguous' keeps a comparison unresolved until a person reviews it.
+ */
+export const obligationSchema = z.object({
+  statement: z.enum(['requirement', 'configuration', 'observation']),
+  interpretation: z.enum(['configured-value', 'declared-maximum', 'unresolved']).optional(),
+  tenant: z.string().min(1).nullable(),
+  resource: z.string().min(1).nullable(),
+  applicability: z.enum(['stated', 'reviewed', 'ambiguous']),
+  exceptions: z.array(z.string().min(1)),
+});
+export type Obligation = z.infer<typeof obligationSchema>;
+
 export const promiseSchema = z.object({
   id: promiseId,
   status: z.enum(['draft', 'accepted', 'retired']),
@@ -118,6 +137,7 @@ export const promiseSchema = z.object({
    * compare them: two promises about the same subject with incompatible constraints are a contradiction with no AI.
    */
   facets: promiseFacetsSchema.optional(),
+  obligation: obligationSchema.optional(),
 });
 export type PromiseRecord = z.infer<typeof promiseSchema>;
 
@@ -133,6 +153,8 @@ export const contradictionSchema = z.object({
   status: z.enum(['open', 'real', 'not-a-conflict']),
   foundBy: z.enum(['model', 'structured']),
   ruling: z.object({ by: z.string(), why: z.string(), at: isoTime }).optional(),
+  /** Absent on older records. Two requirements that cannot both hold differ from a configured value breaking a requirement. */
+  kind: z.enum(['incompatible-requirements', 'configuration-violation']).optional(),
 });
 export type Contradiction = z.infer<typeof contradictionSchema>;
 
@@ -183,7 +205,7 @@ export const ruleSchema = z.object({
   id: z.string().regex(/^R-[a-z0-9.-]+$/u),
   promiseId,
   description: z.string().min(3),
-  mode: z.enum(['must-match', 'must-not-match', 'each-near']),
+  mode: z.enum(['must-match', 'must-not-match', 'each-near', 'semantic']),
   pattern: z.string().min(1),
   flags: z.string().regex(/^[imsu]*$/u).optional(),
   anchor: z.string().optional(),
@@ -196,6 +218,15 @@ export const ruleSchema = z.object({
   status: z.enum(['proposed', 'accepted']),
   author: z.enum(['model', 'human']),
   createdAt: isoTime,
+  /** Mode 'semantic' only: an optional versioned analyzer decides, not a pattern. `pattern` then just describes the control. */
+  semantic: z
+    .object({
+      adapter: z.string().min(1),
+      adapterVersion: z.string().min(1),
+      control: z.string().min(1),
+      config: z.record(z.string(), z.unknown()),
+    })
+    .optional(),
 });
 export type Rule = z.infer<typeof ruleSchema>;
 
@@ -206,6 +237,10 @@ export const ruleRunResultSchema = z.object({
   /** For a fail: the offending lines; for a pass: the lines that satisfied the rule (may be empty for must-not-match). */
   hits: z.array(citationSchema),
   message: z.string(),
+  /** What a semantic analyzer could not assess (dynamic registration, unresolved call, unmodeled path). */
+  coverageGaps: z
+    .array(z.object({ kind: z.string().min(1), detail: z.string().min(1), path: z.string().optional(), line: z.number().int().positive().optional() }))
+    .optional(),
 });
 export type RuleRunResult = z.infer<typeof ruleRunResultSchema>;
 
@@ -278,6 +313,14 @@ export const checkResultSchema = z.object({
    */
   cacheKey: sha256Hex.optional(),
   reused: z.object({ fromRun: z.string(), fromCommit: commitSha }).optional(),
+  /** How strong the rule evidence is. Known-open counterexamples prevent an unqualified green result. */
+  assurance: z
+    .object({
+      coverage: z.enum(['strong-control', 'limited-detector', 'unassessed']),
+      openCounterexamples: z.number().int().nonnegative(),
+      warning: z.string().optional(),
+    })
+    .optional(),
 });
 export type CheckResult = z.infer<typeof checkResultSchema>;
 
@@ -329,6 +372,41 @@ export const checkRunSchema = z.object({
   repoCommits: z.record(z.string(), z.array(z.object({ name: z.string().min(1), commit: commitSha }))).optional(),
 });
 export type CheckRun = z.infer<typeof checkRunSchema>;
+
+/* ============================== rule assessments ============================== */
+
+/**
+ * Portable record of what is known about a rule. Committed at .jurator/assessments/<ruleId>.json so its limits travel
+ * with it. Open counterexamples prevent a 'strong-control' label; a limited detector is kept, with the shapes it misses.
+ */
+export const assessmentBundleSchema = z.object({
+  schemaVersion: z.literal(1),
+  ruleId: z.string(),
+  promiseId,
+  ruleDigest: sha256Hex,
+  promiseDigest: sha256Hex,
+  analyzer: z.object({ id: z.string().min(1), version: z.string().min(1) }),
+  sourceRevision: commitSha,
+  readSet: z.array(z.object({ path: z.string(), blob: z.string() })),
+  mutants: z.array(
+    z.object({
+      path: z.string(),
+      find: z.string(),
+      replace: z.string(),
+      why: z.string(),
+      judgeNote: z.string(),
+      round: z.number().int().min(0),
+      closed: z.boolean(),
+    }),
+  ),
+  harmlessControls: z.array(z.object({ path: z.string(), find: z.string(), replace: z.string(), why: z.string(), passed: z.boolean() })),
+  adjudication: z.object({ by: z.enum(['model', 'human', 'none']), model: z.string().optional(), at: isoTime.optional(), independent: z.boolean() }),
+  coverage: z.enum(['strong-control', 'limited-detector', 'unassessed']),
+  createdAt: isoTime,
+  /** sha256(stableJson(bundle without digest)). */
+  digest: sha256Hex,
+});
+export type AssessmentBundle = z.infer<typeof assessmentBundleSchema>;
 
 /* ============================== config ============================== */
 

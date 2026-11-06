@@ -1,0 +1,46 @@
+{
+  "schema": "praesidia.investigation-result/v1",
+  "createdAt": "2026-11-05T10:05:00.000Z",
+  "requestDigest": "e55d1a81b0ce54f45d512e6da4eb9771d656aeae531e73d36365c3d86d827f06",
+  "profile": {
+    "id": "customer-export-approval",
+    "version": 1,
+    "requirementsDigest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  },
+  "adapter": {
+    "id": "scripted-reference",
+    "configurationDigest": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+  },
+  "execution": {
+    "status": "unsupported",
+    "reason": "no mapping"
+  },
+  "behavioral": {
+    "verdict": "contradicted",
+    "statement": "An approval for one request authorised a different export."
+  },
+  "static": {
+    "level": "rule",
+    "verdict": "holds"
+  },
+  "mismatch": {
+    "kind": "static-pass-runtime-contradicted",
+    "explanation": "The code check passed but observed runtime behavior contradicts the promise."
+  },
+  "scope": ["Isolated synthetic workload; not production."],
+  "captures": [
+    {
+      "id": "exact-request-binding",
+      "kind": "check",
+      "status": "FAIL",
+      "summary": "Approval was not bound to the executed request.",
+      "digest": "1111111111111111111111111111111111111111111111111111111111111111"
+    }
+  ],
+  "missingEvidence": [],
+  "proposedAction": {
+    "kind": "repair",
+    "description": "Bind the approval to the exact request digest, then retest."
+  },
+  "digest": "1f82cf8cff93f68a33b6a4d03ec742387bd3792c93fc42ae327143ea694f940f"
+}

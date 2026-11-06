@@ -57,6 +57,12 @@ const SEVERITY: Readonly<Record<Verdict, number>> = {
   'looks-kept': 4,
   holds: 5,
 };
+/** Set when a HOLDS comes from a rule with known open counterexamples: not an unqualified pass. */
+export function limitedNote(r: CheckResult): string | null {
+  const a = r.assurance;
+  if (r.verdict !== 'holds' || !a || a.openCounterexamples === 0) return null;
+  return `limited: ${a.openCounterexamples} known miss${a.openCounterexamples === 1 ? '' : 'es'}`;
+}
 /** Worst first, then by promise id (the record itself stays sorted by id). */
 export function bySeverity(results: readonly CheckResult[]): CheckResult[] {
   return [...results].sort((a, b) => SEVERITY[a.verdict] - SEVERITY[b.verdict] || a.promiseId.localeCompare(b.promiseId));
@@ -311,6 +317,7 @@ export function renderRunText(run: CheckRun, style: Style, options0: RenderOptio
     const color = paint(r.verdict, style);
     const label = LABELS[r.verdict];
     let tail = '';
+    const lim = limitedNote(r);
     if (r.verdict === 'not-checked') tail = style.dim(oneLine(r.reason ?? 'not checked', restW));
     else {
       const w = where(r);
@@ -319,6 +326,7 @@ export function renderRunText(run: CheckRun, style: Style, options0: RenderOptio
         const room = restW - w.length - 2;
         tail = room > 8 ? `${w}  ${style.dim(firstQuoteLine(c.quote, room))}` : oneLine(w, restW);
       } else if (w) tail = oneLine(w, restW);
+      if (lim) tail = tail ? `${tail}  ${style.yellow(lim)}` : style.yellow(lim);
     }
     const rowText = `${color(SYMBOLS[r.verdict])} ${r.promiseId.padEnd(idW)}  ${color(label)}${tail ? ' '.repeat(labelW - label.length + 2) + tail : ''}`;
     // "(reused from <run>)" when it fits on the row; else "(reused)", named in one line under the list.
@@ -400,7 +408,7 @@ export function renderRunMarkdown(run: CheckRun, options: RenderOptions = {}): s
     out.push('| | Promise | Result | Where |', '|---|---|---|---|');
     for (const r of bySeverity(run.results)) {
       const w = where(r);
-      const plain = r.verdict === 'not-checked' ? `${LABELS[r.verdict]}: ${r.reason ?? ''}` : LABELS[r.verdict];
+      const plain = r.verdict === 'not-checked' ? `${LABELS[r.verdict]}: ${r.reason ?? ''}` : limitedNote(r) ? `${LABELS[r.verdict]} (${limitedNote(r)})` : LABELS[r.verdict];
       const extras = [reusedNote(run, r), r.trigger ?? null].filter((x): x is string => x !== null);
       const result = extras.length > 0 ? `${plain} ${extras.join(' · ')}` : plain;
       const whereCell = w ? `\`${cell(w)}\`` : r.verdict === 'broken' && r.explanation ? cell(oneLine(r.explanation, 120)) : '';
@@ -411,7 +419,7 @@ export function renderRunMarkdown(run: CheckRun, options: RenderOptions = {}): s
     out.push(run.target.kind === 'diff' ? 'No promise is touched by this change.' : 'No accepted promises to check.', '');
   }
   const evidence = bySeverity(run.results).filter(
-    (r) => r.verdict !== 'holds' && (r.citations.length > 0 || r.explanation || r.reason),
+    (r) => (r.verdict !== 'holds' || limitedNote(r) !== null) && (r.citations.length > 0 || r.explanation || r.reason || r.assurance?.warning),
   );
   if (evidence.length > 0) {
     out.push(`<details><summary>Evidence (code quotes copied from git by ${BRAND.name}, not by the AI)</summary>`, '');
@@ -422,6 +430,7 @@ export function renderRunMarkdown(run: CheckRun, options: RenderOptions = {}): s
       }
       if (r.explanation) out.push(`${r.level === 'ai-read' ? 'AI read' : 'Rule'}: ${oneLine(r.explanation, 400)}`, '');
       if (r.reason && r.verdict !== 'not-checked') out.push(`Note: ${oneLine(r.reason, 300)}`, '');
+      if (r.assurance?.warning) out.push(`Limits: ${oneLine(r.assurance.warning, 400)}`, '');
     }
     out.push('</details>', '');
   }

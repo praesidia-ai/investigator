@@ -27,6 +27,42 @@ for every take, with the same commit shas each time.
 - Live answers vary between takes. That take had 14 promises and 10 code promises; the scripted rehearsal has 11
   and 9. The voice lines below name no counts and only one id, `privacy.01`, which is the same in both.
 
+## Film it (one command)
+
+`scripts/film/film.mjs` turns one real take into the finished cut: a 1920x1080, 30 fps MP4 with narration, captions,
+the shot-list voice lines, and the recorded Investigator report as the last segment.
+
+```sh
+npm run build
+npm run film -- --out ../artifacts/film-<date>                              # scripted rehearsal (free, marked REHEARSAL)
+npm run film -- --out ../artifacts/film-<date>-live --live --env-file ../.env  # live take, then film it
+npm run film -- --out <new-dir> --take <dir>/take.typescript --narration <dir>  # re-film a take with recorded voice
+```
+
+- The take runs `scripts/demo.sh --video` through a pty, so the terminal frames are its real output and colours.
+  The film only paces, scrolls and highlights what the take printed. Each frame is rendered at an exact time and
+  piped to ffmpeg, so the result is the same every run.
+- Voice: `--voice kokoro` uses Kokoro-82M (open weights, Apache-2.0, runs locally, free; default voice `af_heart`,
+  `--speed` to fit 3:00). It needs a Python with `kokoro-onnx` and `soundfile` (`KOKORO_PY`, default
+  `~/.cache/jurator-film/.venv/bin/python`) and the model files in `KOKORO_DIR` (see `scripts/film/tts_kokoro.py`).
+  `--voice say` is the macOS scratch voice. Record each line in `narration.md` as `scene-NN.wav` and pass
+  `--narration <dir>` with `--take` to re-film with a person's voice; no new model calls are made.
+- `--plan` narrates and times the scenes, then stops before rendering: use it to check the 3:00 limit.
+- The cut covers both tools: Jurator (the live take), a "How we use Meta" card (Meta Responses API,
+  `muse-wonder-1.0`, `muse-spark-1.3`), and the recorded Investigator run. Each terminal shot has a badge that says
+  whether that step called a Meta model or ran rules with no AI.
+- For YouTube it writes `youtube.md` (title, description with chapters, tags) and `thumbnail.jpg` (1280x720); the audio
+  is 48 kHz stereo AAC normalised to -14 LUFS.
+- The voice lines follow the take, not the shot list. If a rule already fails on main (two live takes so far failed
+  `praesidia.02`: the fixture's `search_notes` tool has no approval call), the film names it and says the check on
+  main blocks. The voice says "drops one it cannot find" only if the take dropped a quote, and mentions AI reads only
+  if the take showed one. If main is broken but no rule shows as broken, the film stops instead of guessing.
+- The film hides the yellow `!` self-check lines and the "differences from the script" count. It prints a warning
+  with the count, and `take.typescript` keeps every line.
+- Output folder: `jurator-demo.mp4`, `captions.srt`, `narration.md`, `poster.png`, `thumbnail.jpg`, `youtube.md`,
+  `film.json`, `take.typescript`.
+- Needs macOS `script`, ffmpeg, Playwright (by default the `ui` repo's; set `PLAYWRIGHT_MODULE`), and `say` or Kokoro.
+
 ## Shot list (3:00)
 
 | Time | Shot | On screen (exact command) | Voice |
@@ -47,6 +83,30 @@ for every take, with the same commit shas each time.
 | 2:52 | End | Card: the cost line and the repo URL | "Measured: compile 13 cents, rules 37 cents, each check 2 cents. Checks after that are rules only and free." |
 
 Shot numbers follow the order the script runs. The hero (0:00) reuses the box from shot 7.
+
+## Corvane cut (the submitted film)
+
+The submitted film is the Corvane cut, not the shot list above. Corvane is a fictional fintech workspace (6 repos,
+4 policies) built by `scripts/make-demo-workspace.py`. The terminal take is spliced from several live recordings and
+rendered with:
+
+```sh
+node scripts/film/film.mjs --out <new dir> --corvane <take.typescript> --voice kokoro --speed 1.25
+```
+
+- Agent hook: Muse Code (`jurator hook install muse`, `jurator hook run muse`). The event is typed by the script
+  and labelled "simulated agent call" on screen.
+- Live: compile, rules, checks, discuss, bench (`jurator bench`, about $2.35) and `investigator cancellation-demo --live`.
+- Scripted, labelled "scripted · no model calls": `investigator demo`, `repair-demo`, `evidence-demo` and
+  `assurance-demo`. Their `--live` runs failed on this workspace, so the film shows the scripted runs.
+- Bench line: say only the measured numbers. The plain skill prompt also caught every planted break, so do not say
+  Jurator beats it.
+- "Beyond the code" scene: a map of what the tools already read and answer in. It lists only shipped surfaces:
+  policy sources `file` and `praesidia` (a recorded Praesidia agent policy export), rules on code, config and
+  infrastructure-as-code in the repos, Investigator experiments over HTTP, and the git pre-push hook, Muse Code hook,
+  MCP server (read-only), JSON/Markdown with exit codes, HTML report and `verify`. Do not add other connectors.
+- Narration pauses: a `|` in a scene's voice text makes `tts_kokoro.py` speak each phrase separately with 0.6 s of
+  silence and write `<wav>.marks.json`. The player times captions and animation cues from those marks.
 
 ## Not in this cut (and why)
 

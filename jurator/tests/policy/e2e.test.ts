@@ -110,7 +110,7 @@ describe('scripted end-to-end compile of the acme policies', () => {
       { id: 'C-1', promiseIds: ['praesidia.01', 'privacy.01'], status: 'open', foundBy: 'structured' },
     ]);
     expect(report.contradictions[0]?.example).toBe(
-      'A support chat from 1 March must be gone by 31 March under privacy.01 but may stay until 30 May under praesidia.01.',
+      'A support chat from 1 March must be gone by 31 March under privacy.01, but praesidia.01 is set to keep it 90 days (until 30 May).',
     );
     expect(state.store.contradictions).toHaveLength(1);
     // C-1 comes from comparing typed facets: every pair is decided by the program, so no contradictions model call.
@@ -122,7 +122,7 @@ describe('scripted end-to-end compile of the acme policies', () => {
       action: 'keep',
       constraint: { name: 'retention', op: '<=', value: '30', unit: 'days' },
     });
-    expect(byId.get('praesidia.01')?.facets?.constraint).toEqual({ name: 'retention', op: '<=', value: '90', unit: 'days' });
+    expect(byId.get('praesidia.01')?.facets?.constraint).toEqual({ name: 'retention', op: '==', value: '90', unit: 'days' });
     expect(report.costUsd).toBe(0);
 
     // Second run: nothing changed, so no model calls and the same ids.
@@ -219,7 +219,8 @@ describe('promises, accept, conflicts, add', () => {
     const out = ctx.lines.join('\n');
     expect(out).toContain('Conflicts: 1 (1 open)');
     expect(out).toContain('praesidia.01');
-    expect(out).toContain('Example: A support chat from 1 March must be gone by 31 March under privacy.01 but may stay until 30 May under praesidia.01.');
+    expect(out).toContain('Example: A support chat from 1 March must be gone by 31 March under privacy.01, but praesidia.01 is set to keep it 90 days (until 30 May).');
+    expect(out).toContain('A setting breaks a requirement');
     expect(out).toContain('Found by comparing 30 days with 90 days (no AI).');
     expect(ctx.lines.at(-1)).toMatch(/^Next: change one of the sources so they agree, then jurator compile/u);
     const asJson = ctxFor(['--json']);

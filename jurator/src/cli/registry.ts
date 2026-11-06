@@ -12,6 +12,7 @@ import doctor from './commands/doctor.js';
 import explain from './commands/explain.js';
 import hook from './commands/hook.js';
 import init from './commands/init.js';
+import investigation from './commands/investigation.js';
 import promises from './commands/promises.js';
 import mcp from './commands/mcp.js';
 import pull from './commands/pull.js';
@@ -22,5 +23,5 @@ import verify from './commands/verify.js';
 
 /** Order = order shown in --help (the flow a new user follows). */
 export const COMMANDS: readonly Command[] = [
-  init, add, pull, compile, promises, accept, conflicts, rule, bind, check, explain, verify, report, status, discuss, hook, mcp, bench, doctor,
+  init, add, pull, compile, promises, accept, conflicts, rule, bind, check, explain, verify, investigation, report, status, discuss, hook, mcp, bench, doctor,
 ];

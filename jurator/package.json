@@ -9,11 +9,13 @@
   "private": true,
   "engines": { "node": ">=22.12.0" },
   "bin": { "jurator": "dist/bin.js" },
+  "files": ["dist", "templates", "analyzers", "README.md", "LICENSE", "NOTICE"],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit -p tsconfig.test.json",
     "test": "vitest run",
-    "check": "npm run typecheck && npm run test && npm run build"
+    "check": "npm run typecheck && npm run test && npm run build",
+    "film": "node scripts/film/film.mjs"
   },
   "dependencies": { "zod": "4.6.7" },
   "devDependencies": { "@types/node": "26.6.6", "typescript": "7.0.2", "vitest": "5.0.5" }

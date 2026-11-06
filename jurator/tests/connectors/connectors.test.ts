@@ -78,7 +78,7 @@ describe('praesidia connector', () => {
     const doc = await connector.fetch(PRAESIDIA, cctx(repo()));
     const drafts = connector.toPromises?.(doc) ?? [];
     expect(drafts.map((d) => [d.wording, d.kind, d.checkable, d.quote.jsonPointer, d.quote.text])).toEqual([
-      ['Data is kept for at most 90 days.', 'must', 'code', '/dataRetentionDays', '90'],
+      ['Data retention is set to 90 days; the export does not say what that means.', 'must', 'code', '/dataRetentionDays', '90'],
       ['search_notes needs approval before it runs.', 'must', 'code', '/allowedTools/0', '"search_notes"'],
       ['export_notes needs approval before it runs.', 'must', 'code', '/allowedTools/1', '"export_notes"'],
       ['Personal data is blocked from agent output.', 'must', 'runtime', '/blockPii', 'true'],
@@ -88,18 +88,39 @@ describe('praesidia connector', () => {
     expect(drafts[0]?.quote.line).toBe(5);
   });
 
-  it('fills typed facets from the settings (no AI): retention is keep <= N days', async () => {
+  it('fills typed facets from the settings (no AI): retention without a stated meaning is a value, not a limit', async () => {
     const connector = getConnector('praesidia');
     const doc = await connector.fetch(PRAESIDIA, cctx(repo()));
     const drafts = connector.toPromises?.(doc) ?? [];
     expect(drafts.map((d) => d.facets)).toEqual([
-      { subject: 'support chats', action: 'keep', constraint: { name: 'retention', op: '<=', value: '90', unit: 'days' } },
+      { subject: 'support chats', action: 'keep', constraint: { name: 'retention', op: '==', value: '90', unit: 'days' } },
       { subject: 'search_notes', action: 'require approval', constraint: { name: 'before it runs', op: 'always', value: null, unit: null } },
       { subject: 'export_notes', action: 'require approval', constraint: { name: 'before it runs', op: 'always', value: null, unit: null } },
       { subject: 'personal data', action: 'show in agent output', constraint: { name: 'allowed', op: 'never', value: null, unit: null } },
     ]);
     expect(retentionSubject({ name: 'Billing agent', dataRetentionDays: 30 })).toBe('customer data');
     expect(retentionSubject({ name: 'Agent', dataKind: 'chat transcripts' })).toBe('support chats');
+  });
+
+  it('dataRetentionMeaning decides what retention is: unresolved, configured value or declared maximum (never guessed)', async () => {
+    const connector = getConnector('praesidia');
+    const doc = await connector.fetch(PRAESIDIA, cctx(repo()));
+    const first = (meaning?: string) => {
+      const text = JSON.stringify({ name: 'Agent', dataRetentionDays: 90, ...(meaning ? { dataRetentionMeaning: meaning } : {}) });
+      return (connector.toPromises?.({ ...doc, text, sha256: sha256(text) }) ?? [])[0];
+    };
+    const none = first();
+    expect(none?.obligation).toMatchObject({ statement: 'configuration', interpretation: 'unresolved' });
+    expect(none?.facets?.constraint?.op).toBe('==');
+    const value = first('configured-value');
+    expect(value?.obligation).toMatchObject({ statement: 'configuration', interpretation: 'configured-value' });
+    expect(value?.wording).toBe('Data retention is configured to 90 days.');
+    expect(value?.facets?.constraint?.op).toBe('==');
+    const max = first('declared-maximum');
+    expect(max?.obligation).toMatchObject({ statement: 'configuration', interpretation: 'declared-maximum' });
+    expect(max?.wording).toBe('Data is kept for at most 90 days.');
+    expect(max?.facets?.constraint?.op).toBe('<=');
+    expect(() => first('bogus')).toThrow(/dataRetentionMeaning/u);
   });
 
   it('does not call any API for live locators', async () => {

@@ -440,7 +440,7 @@ export async function compilePolicy(
       }),
       schemaName: 'policy_promises',
       schema: compileOutputSchema,
-      maxOutputTokens: 8000,
+      maxOutputTokens: 16000, // real policies on a multi-repo workspace overran 8000 (dogfood, 4 Nov)
     });
     usage.push(result.usage);
     candidates = result.value.promises.map((d) => modelDraftToCandidate(doc, d));

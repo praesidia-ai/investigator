@@ -35,6 +35,7 @@
     "CHANGELOG.md",
     "docs",
     "scripts",
+    "schemas",
     "LICENSE",
     "NOTICE"
   ],
@@ -52,6 +53,8 @@
     "doctor": "node dist/bin.js doctor",
     "demo:independent": "node scripts/independent-demo.mjs",
     "smoke:packed": "node scripts/packed-smoke.mjs",
+    "smoke:interop": "node scripts/interop-smoke.mjs",
+    "acceptance:export": "node scripts/acceptance-export-case.mjs",
     "release:readiness": "node scripts/release-readiness.mjs",
     "release:artifact": "node scripts/packed-smoke.mjs",
     "release:source": "python3 scripts/source-archive.py",

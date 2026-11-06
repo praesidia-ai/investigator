@@ -1,0 +1,75 @@
+{
+  "schema": "praesidia.investigation-request/v1",
+  "createdAt": "2026-11-05T10:00:00.000Z",
+  "promise": {
+    "id": "security.01",
+    "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "status": "accepted",
+    "wording": "Only workspace admins can export customer data.",
+    "kind": "must",
+    "checkable": "code"
+  },
+  "policy": {
+    "alias": "security",
+    "sha256": "c07640d9d31b4d89a10fbd78b2fda8124b8005006ba5cd80f876af4e6d2a336b",
+    "mediaType": "text/markdown",
+    "text": "# Security\n\n1. Only workspace admins can export   customer data.\n"
+  },
+  "quote": {
+    "text": "Only workspace admins can export   customer data.",
+    "locator": {
+      "kind": "span",
+      "start": 15,
+      "end": 64
+    }
+  },
+  "trigger": {
+    "runId": "run-2026-11-05-001",
+    "codeCheck": {
+      "level": "rule",
+      "verdict": "holds"
+    },
+    "repo": {
+      "name": "acme-notes",
+      "commit": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "citations": [
+      {
+        "path": "src/routes/export.ts",
+        "commit": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "startLine": 4,
+        "endLine": 5,
+        "quote": "router.get('/export', async (req, res) => {\n  requireAdmin(req);"
+      }
+    ]
+  },
+  "tenant": "other",
+  "workflow": "customer-export",
+  "environment": "reference-test",
+  "window": {
+    "start": "2026-11-04T00:00:00.000Z",
+    "end": "2026-11-05T00:00:00.000Z"
+  },
+  "mapping": {
+    "profileId": "customer-export-approval",
+    "profileVersion": 1,
+    "requirementsDigest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "reviewedBy": "security-lead@acme.example",
+    "reviewedAt": "2026-11-05T09:00:00.000Z"
+  },
+  "commitments": {
+    "context": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "evidence": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+  },
+  "adapter": {
+    "id": "scripted-reference",
+    "configurationDigest": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+  },
+  "scope": "Isolated authored customer-export workload only.",
+  "budget": {
+    "maxModelTurns": 8,
+    "maxToolCalls": 12,
+    "maxRuntimeSeconds": 120
+  },
+  "digest": "e55d1a81b0ce54f45d512e6da4eb9771d656aeae531e73d36365c3d86d827f06"
+}

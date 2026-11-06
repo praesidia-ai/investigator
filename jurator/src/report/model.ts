@@ -47,6 +47,14 @@ const VERDICTS: Readonly<Record<Verdict, VerdictView>> = {
   holds: { word: 'HOLDS', by: 'rule, no AI', tone: 'kept', rank: 5 },
 };
 
+/** A HOLDS from a rule with known open counterexamples is a limited detector, not an unqualified pass. */
+export function resultView(r: CheckResult): VerdictView {
+  const v = VERDICTS[r.verdict];
+  const a = r.assurance;
+  if (r.verdict !== 'holds' || !a || a.openCounterexamples === 0) return v;
+  return { word: 'HOLDS (limited)', by: `rule, no AI; ${a.openCounterexamples} known miss${a.openCounterexamples === 1 ? '' : 'es'}`, tone: 'unsure', rank: 4 };
+}
+
 export function verdictView(verdict: Verdict): VerdictView {
   return VERDICTS[verdict];
 }
@@ -119,13 +127,13 @@ export function promiseViews(input: ReportInput): PromiseView[] {
       const onChecklist = checklist.has(p.id);
       const hits = (result?.ruleResults ?? []).flatMap((r) => r.hits);
       const citations = uniqueCitations(result ? (result.citations.length > 0 ? result.citations : hits) : []);
-      const note = result
-        ? (result.explanation ?? result.reason ?? null)
-        : null;
+      const base = result ? (result.explanation ?? result.reason ?? null) : null;
+      const warn = result?.assurance?.openCounterexamples ? result.assurance.warning ?? null : null;
+      const note = warn ? [base, warn].filter(Boolean).join(' ') : base;
       return {
         promise: p,
         result,
-        verdict: result ? verdictView(result.verdict) : notInRun(p, input.run, onChecklist),
+        verdict: result ? resultView(result) : notInRun(p, input.run, onChecklist),
         policyWhere: policyWhere(p, input.sources),
         citations,
         note,

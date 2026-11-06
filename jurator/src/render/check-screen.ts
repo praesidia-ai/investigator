@@ -8,7 +8,7 @@ import { BRAND } from '../brand.js';
 import type { CheckResult, CheckRun } from '../contracts.js';
 import { findingRows, fromCheckResult, repoFacts, ruleLine, templateSummary, type ShortIds } from '../explain/index.js';
 import type { BadgeKind, FindingRow, Ui } from '../ui/index.js';
-import { bySeverity, incrementalLine, nextHint, policyWhere, shortRef, type RenderOptions } from './index.js';
+import { bySeverity, incrementalLine, limitedNote, nextHint, policyWhere, shortRef, type RenderOptions } from './index.js';
 import { modelLabel } from './video.js';
 
 const short = (sha: string): string => sha.slice(0, 7);
@@ -100,6 +100,7 @@ export function renderRunScreen(run: CheckRun, ui: Ui, options: RenderOptions = 
         if (text) parts.push(`${text}${s?.by === 'ai' ? ' (summary by AI)' : ''}`);
       } else if (r.verdict === 'not-checked') parts.push(r.reason ?? 'not checked');
       else if (r.level === 'ai-read' && r.verdict === 'looks-kept' && where(r)) parts.push(`read by AI at ${where(r)}`);
+      if (limitedNote(r)) parts.push(`${limitedNote(r)}${r.assurance?.warning ? `: ${r.assurance.warning}` : ''}`);
       if (r.trigger) parts.push(`checked because the change ${r.trigger}`);
       if (r.reused && !run.incremental?.skippedUnchanged && (parts.length > 0 || ui.caps.verbose)) parts.push('(reused)');
       rows.push([ui.badge(r.verdict as BadgeKind), ids.short(r.promiseId), r.wording]);
@@ -127,12 +128,14 @@ export function renderRunScreen(run: CheckRun, ui: Ui, options: RenderOptions = 
   }
   if (boxed.length > 0 && !ui.caps.verbose) out.push('', ...ui.hint(`  Details (rule, pattern, every line found): --verbose, or ${BRAND.command} explain ${ids.short(boxed[0]?.promiseId ?? '<promise>')}`));
   const s = run.summary;
-  const holds = run.results.filter((r) => r.verdict === 'holds').length;
+  const limited = run.results.filter((r) => limitedNote(r) !== null).length;
+  const holds = run.results.filter((r) => r.verdict === 'holds').length - limited;
   out.push('');
   out.push(
     ...ui.cards([
       { value: String(s.broken), label: s.broken > 0 && run.failMode === 'block' ? 'broken: blocks' : 'broken', tone: s.broken > 0 ? 'broken' : 'muted' },
       { value: String(holds), label: 'hold (rules)', tone: holds > 0 ? 'kept' : 'muted' },
+      ...(limited > 0 ? [{ value: String(limited), label: 'hold, limited (known misses)', tone: 'accent' as const }] : []),
       { value: String(s.looksBroken + s.cantTell), label: 'AI hints', tone: s.looksBroken > 0 ? 'broken' : 'muted' },
       { value: `${s.coveredByRules}/${s.codePromises}`, label: 'covered by rules', tone: 'accent' },
     ]),

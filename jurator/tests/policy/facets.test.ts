@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Contradiction, PromiseFacets, PromiseRecord } from '../../src/contracts.js';
+import type { Contradiction, Obligation, PromiseFacets, PromiseRecord } from '../../src/contracts.js';
 import { toStrictJsonSchema } from '../../src/model/strict.js';
 import { compareAll, comparePromises, subjectsOverlap } from '../../src/policy/compare.js';
 import { findContradictions } from '../../src/policy/contradictions.js';
@@ -19,7 +19,12 @@ const never = (subject: string, action: string): PromiseFacets => ({
   constraint: { name: 'allowed', op: 'never', value: null, unit: null },
 });
 
-function p(id: string, facets?: PromiseFacets, kind: PromiseRecord['kind'] = 'must', status: PromiseRecord['status'] = 'accepted'): PromiseRecord {
+const ob = (o: Partial<Obligation> = {}): Obligation => ({ statement: 'requirement', tenant: null, resource: null, applicability: 'stated', exceptions: [], ...o });
+/** A configured value (a connector's setting), not a requirement. */
+const config = (days: string): PromiseFacets => keep('support chats', days, '==');
+const cfgOb = ob({ statement: 'configuration', interpretation: 'configured-value' });
+
+function p(id: string, facets?: PromiseFacets, kind: PromiseRecord['kind'] = 'must', status: PromiseRecord['status'] = 'accepted', obligation?: Obligation): PromiseRecord {
   return {
     id,
     status,
@@ -31,6 +36,7 @@ function p(id: string, facets?: PromiseFacets, kind: PromiseRecord['kind'] = 'mu
     foundBy: 'model',
     firstSeen: NOW.toISOString(),
     ...(facets ? { facets } : {}),
+    ...(obligation ? { obligation } : {}),
   };
 }
 
@@ -84,25 +90,58 @@ describe('normaliseFacets', () => {
 });
 
 describe('comparePromises (no AI)', () => {
-  it('finds the acme retention conflict with a computed example', () => {
+  it('two maxima for the same data are compatible: the stricter one is the effective limit (not a conflict)', () => {
     const r = comparePromises(p('privacy.01', keep('support chats', '30')), p('praesidia.01', keep('support chats', '90')));
-    expect(r).toEqual({
-      verdict: 'conflict',
-      basis: '30 days with 90 days',
-      example: 'A support chat from 1 March must be gone by 31 March under privacy.01 but may stay until 30 May under praesidia.01.',
-    });
+    expect(r).toMatchObject({ verdict: 'ok', effective: { text: 'at most 30 days', max: 30 } });
   });
 
-  it('matches subjects that contain each other or are listed as the same data', () => {
+  it('a configured value that breaks a requirement is a configuration violation with a computed example', () => {
+    const r = comparePromises(p('privacy.01', keep('support chats', '30')), p('praesidia.01', config('90'), 'must', 'accepted', cfgOb));
+    expect(r).toEqual({
+      verdict: 'conflict',
+      kind: 'configuration-violation',
+      basis: '30 days with 90 days',
+      example: 'A support chat from 1 March must be gone by 31 March under privacy.01, but praesidia.01 is set to keep it 90 days (until 30 May).',
+    });
+    // A configured value inside the requirement is fine.
+    expect(comparePromises(p('privacy.01', keep('support chats', '90')), p('praesidia.01', config('30'), 'must', 'accepted', cfgOb)).verdict).toBe('ok');
+    // A declared maximum is a limit, not a value in use: compatible with the stricter requirement.
+    const declared = ob({ statement: 'configuration', interpretation: 'declared-maximum' });
+    expect(comparePromises(p('privacy.01', keep('support chats', '30')), p('praesidia.01', keep('support chats', '90'), 'must', 'accepted', declared))).toMatchObject({ verdict: 'ok', effective: { max: 30 } });
+  });
+
+  it('a minimum against a maximum that cannot both hold is incompatible requirements', () => {
+    expect(comparePromises(p('a.01', keep('support chats', '90', '>=')), p('b.01', keep('support chats', '30')))).toMatchObject({ verdict: 'conflict', kind: 'incompatible-requirements' });
+  });
+
+  it('subjects linked only by the synonym list need a person; other tenants/resources are distinct', () => {
+    const r = comparePromises(p('a.01', keep('customer data', '30')), p('b.01', keep('notes', '90', '>=')));
+    expect(r).toMatchObject({ verdict: 'undecided', needsPerson: true });
+    // Same reviewed resource is the same dataset whatever the wording; another tenant or resource is distinct.
+    const a = p('a.01', keep('customer data', '30'), 'must', 'accepted', ob({ resource: 'db1', applicability: 'reviewed' }));
+    expect(comparePromises(a, p('b.01', keep('notes', '90', '>='), 'must', 'accepted', ob({ resource: 'db1' }))).verdict).toBe('conflict');
+    expect(comparePromises(a, p('b.01', keep('notes', '90', '>='), 'must', 'accepted', ob({ resource: 'db2' })))).toMatchObject({ verdict: 'ok', why: 'different tenant or resource' });
+    expect(comparePromises(p('a.01', keep('notes', '30'), 'must', 'accepted', ob({ tenant: 't1' })), p('b.01', keep('notes', '90', '>='), 'must', 'accepted', ob({ tenant: 't2' }))).verdict).toBe('ok');
+  });
+
+  it('ambiguous applicability, exceptions and an unresolved setting stay undecided for a person', () => {
+    const amb = comparePromises(p('a.01', keep('support chats', '30')), p('b.01', keep('support chats', '90', '>='), 'must', 'accepted', ob({ applicability: 'ambiguous' })));
+    expect(amb).toMatchObject({ verdict: 'undecided', needsPerson: true });
+    const exc = comparePromises(p('a.01', keep('support chats', '30')), p('b.01', keep('support chats', '90', '>='), 'must', 'accepted', ob({ exceptions: ['legal hold'] })));
+    expect(exc).toMatchObject({ verdict: 'undecided', needsPerson: true });
+    const unresolved = ob({ statement: 'configuration', interpretation: 'unresolved' });
+    expect(comparePromises(p('a.01', keep('support chats', '30')), p('b.01', config('90'), 'must', 'accepted', unresolved))).toMatchObject({ verdict: 'undecided', needsPerson: true });
+  });
+
+  it('matches subjects that contain each other; a synonym-list match is not an overlap', () => {
     expect(subjectsOverlap('chats', 'support chats')).toBe(true);
     expect(subjectsOverlap('support chat', 'support chats')).toBe(true);
-    expect(subjectsOverlap('customer data', 'support chats')).toBe(true);
-    expect(subjectsOverlap('notes', 'chats')).toBe(true);
+    expect(subjectsOverlap('customer data', 'support chats')).toBe(false);
+    expect(subjectsOverlap('notes', 'chats')).toBe(false);
     expect(subjectsOverlap('passwords', 'card numbers and passwords')).toBe(true);
     expect(subjectsOverlap('personal data', 'customer data')).toBe(false);
     expect(subjectsOverlap('search_notes', 'notes')).toBe(false);
-    const r = comparePromises(p('privacy.01', keep('chats', '30')), p('praesidia.01', keep('customer data', '90')));
-    expect(r.verdict).toBe('conflict');
+    expect(comparePromises(p('privacy.01', keep('chats', '30')), p('praesidia.01', keep('customer data', '90'))).verdict).toBe('undecided');
   });
 
   it('says ok for different subjects, different actions, or limits that can both hold', () => {
@@ -116,8 +155,8 @@ describe('comparePromises (no AI)', () => {
 
   it('finds limits that cannot both hold and clashing words', () => {
     expect(comparePromises(p('a.01', keep('support chats', '30')), p('b.01', keep('support chats', '90', '>='))).verdict).toBe('conflict');
-    // "kept exactly 30 days" against "at most 90 days" still names two different retentions.
-    expect(comparePromises(p('a.01', keep('support chats', '30', '==')), p('b.01', keep('support chats', '90'))).verdict).toBe('conflict');
+    // "kept exactly 30 days" against "at most 90 days" can both hold (a requirement, not a configured value).
+    expect(comparePromises(p('a.01', keep('support chats', '30', '==')), p('b.01', keep('support chats', '90'))).verdict).toBe('ok');
     const role = (value: string): PromiseFacets => ({ subject: 'customer data', action: 'export', constraint: { name: 'role', op: '==', value, unit: null } });
     expect(comparePromises(p('a.01', role('admin')), p('b.01', role('owner')))).toMatchObject({ verdict: 'conflict', basis: 'role admin with role owner' });
     const always: PromiseFacets = { subject: 'notes', action: 'share with advertisers', constraint: { name: 'allowed', op: 'always', value: null, unit: null } };
@@ -140,7 +179,7 @@ describe('comparePromises (no AI)', () => {
   it('compareAll skips retired promises and counts pairs', () => {
     const r = compareAll([
       p('privacy.01', keep('support chats', '30')),
-      p('praesidia.01', keep('support chats', '90')),
+      p('praesidia.01', config('90'), 'must', 'accepted', cfgOb),
       p('security.01', never('card numbers', 'log')),
       p('local.01'),
       p('old.01', keep('support chats', '1'), 'must', 'retired'),
@@ -153,7 +192,7 @@ describe('comparePromises (no AI)', () => {
 });
 
 describe('findContradictions: the program first, the model only for undecided pairs', () => {
-  const typed = [p('privacy.01', keep('support chats', '30')), p('praesidia.01', keep('support chats', '90')), p('security.03', never('card numbers', 'log'))];
+  const typed = [p('privacy.01', keep('support chats', '30')), p('praesidia.01', config('90'), 'must', 'accepted', cfgOb), p('security.03', never('card numbers', 'log'))];
 
   it('finds C-1 with no model call when every pair is decided', async () => {
     const model = scriptedModel({});
@@ -163,9 +202,10 @@ describe('findContradictions: the program first, the model only for undecided pa
       {
         id: 'C-1',
         promiseIds: ['praesidia.01', 'privacy.01'],
-        example: 'A support chat from 1 March must be gone by 31 March under privacy.01 but may stay until 30 May under praesidia.01.',
+        example: 'A support chat from 1 March must be gone by 31 March under privacy.01, but praesidia.01 is set to keep it 90 days (until 30 May).',
         status: 'open',
         foundBy: 'structured',
+        kind: 'configuration-violation',
       },
     ]);
     expect(r.stats).toEqual({ pairs: 3, decided: 3, undecided: 0, modelChecked: false });

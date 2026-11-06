@@ -26,3 +26,7 @@ export type { MutantsFile, MutantResult, StoredEvasion } from './mutants.js';
 export { checkRuleAnswer, runOnEdit } from './propose.js';
 export type { RuleExamples, ExtraProof, LabelledEdit } from './propose.js';
 export { RULE_REPAIR_INSTRUCTIONS } from './prompts.js';
+export { assessmentPath, ASSESSMENTS_DIR, analyzerOf, coverageOf, buildBundle, verifyBundle, bundleDigest, readBundle, writeBundle, loadEvasions, readSetOf, saveAssessment, assuranceFor } from './assessment.js';
+export type { Coverage, Assurance, BuildInput } from './assessment.js';
+export { registerSemanticAdapter, unregisterSemanticAdapter, getSemanticAdapter, loadSemanticAdapter, loadSemanticAdapters, runSemanticRule } from './semantic.js';
+export type { SemanticAdapter, SemanticAnalysis, SemanticInput, SemanticFinding, SemanticGap } from './semantic.js';

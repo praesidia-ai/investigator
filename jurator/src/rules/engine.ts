@@ -9,6 +9,7 @@ import { codeView, valueAssigned, valueProblem, type ValueConstraint } from './c
 import { compileSafe, displayPattern, MAX_FILE_LENGTH, MAX_LINE_LENGTH, normalizeFlags } from './regex.js';
 import { removeMatches, scanLines, scanText } from './sandbox.js';
 import { isTestPath, ruleReadsTests } from './select.js';
+import { runSemanticRule } from './semantic.js';
 
 /** At most this many citations per result; the message still counts every hit. */
 export const MAX_HITS = 50;
@@ -231,6 +232,7 @@ export function runRule(rule: Rule, files: readonly SourceFile[], commit: string
   const pat = displayPattern(rule.pattern);
   const inFiles = `${plural(scoped.length, 'file')} under ${globs}`;
   try {
+    if (rule.mode === 'semantic') return runSemanticRule(rule, scoped, commit);
     if (rule.mode === 'each-near') {
       if (!rule.anchor) return { ...base, outcome: 'error', hits: [], message: `${rule.id} is an each-near rule with no anchor` };
       const flags = lineFlags(rule);
@@ -353,6 +355,7 @@ function valueProblems(
  * also fail on the older rule's break.
  */
 export function removeGuard(rule: Rule, files: readonly SourceFile[]): { files: SourceFile[]; changedAt: string[] } {
+  if (rule.mode === 'semantic') throw new Error('a semantic rule is proven by supplied mutants, not by removing lines');
   const scoped = filesForRule(rule, files);
   const wholeFile = isWholeFile(rule);
   const changedAt: string[] = [];
@@ -417,6 +420,7 @@ export function proveRuleCanFail(
   if (before.outcome !== 'pass') {
     return { ok: false, mutation: `none: the rule does not pass on this code (${before.message}), so a break cannot be simulated` };
   }
+  if (rule.mode === 'semantic') return { ok: false, mutation: 'none: a semantic rule is proven by supplied mutants (code that breaks the control), not by removing lines' };
   const scoped = filesForRule(rule, files);
   const pat = displayPattern(rule.pattern);
   const swap = (target: SourceFile, text: string): SourceFile[] =>

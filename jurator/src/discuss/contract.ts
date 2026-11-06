@@ -329,7 +329,7 @@ export interface RuleRow {
   readonly promiseId: string;
   readonly status: 'proposed' | 'accepted';
   readonly description: string;
-  readonly mode: 'must-match' | 'must-not-match' | 'each-near';
+  readonly mode: 'must-match' | 'must-not-match' | 'each-near' | 'semantic';
   readonly globs: readonly string[];
   readonly provenToFail: boolean;
 }

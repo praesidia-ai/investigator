@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Jurator film</title>
+<style>
+  :root {
+    --cream: #f8fafc; --paper: #ffffff; --forest: #0f172a; --forest-2: #b45309; --ink: #1e293b; --muted: #64748b;
+    --term: #0f1419; --term-2: #1a2029; --tx: #e2e8f0; --red: #ef4444; --green: #4ade80; --amber: #f59e0b;
+    --orange: linear-gradient(135deg, #f7931e, #ef5a3c);
+    --mono: "SF Mono", Menlo, Monaco, monospace; --sans: -apple-system, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+    --serif: "New York", "Iowan Old Style", Georgia, serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--cream); color: var(--ink); font-family: var(--sans); }
+  #bg { position: absolute; inset: -80px; background:
+    radial-gradient(1200px 700px at 85% -10%, rgba(247,147,30,.13), transparent 60%),
+    radial-gradient(900px 600px at -10% 110%, rgba(239,90,60,.08), transparent 60%); }
+  #stage { position: absolute; inset: 0; }
+  .scene { position: absolute; inset: 0; display: none; }
+
+  /* top bar */
+  #top { position: absolute; top: 34px; left: 64px; right: 64px; display: flex; justify-content: space-between; align-items: center; z-index: 50; }
+  .brand { font: 700 26px var(--sans); color: var(--forest); letter-spacing: -.01em; display: flex; gap: 14px; align-items: center; }
+  .brand i, .mark { width: 34px; height: 34px; border-radius: 50%; display: inline-block; flex: none;
+    background: radial-gradient(circle, #f39613 0 39.5%, #fff 40.5% 63.5%, transparent 64.5%), linear-gradient(135deg, #fb8c0a, #f23a2e);
+    box-shadow: 0 6px 16px -6px rgba(242,58,46,.45); } /* the Praesidia mark: gradient ring, white ring, orange core */
+  .brand em { font-style: normal; color: var(--muted); font-weight: 600; }
+  .brand small { font: 600 19px var(--sans); color: var(--muted); padding-left: 14px; border-left: 2px solid rgba(15,23,42,.15); }
+  .word { letter-spacing: .04em; }
+  .grad { background: var(--orange); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  #chip { font: 600 21px var(--sans); color: var(--forest); background: rgba(15,23,42,.08); border: 1px solid rgba(15,23,42,.18); padding: 9px 18px; border-radius: 999px; }
+  #mode { font: 600 17px var(--mono); padding: 9px 16px; border-radius: 999px; letter-spacing: .02em; }
+  #mode.live { background: var(--forest); color: #f8fafc; }
+  #mode.live::before { content: "● "; color: var(--green); }
+  #mode.rehearsal { background: #f6e3b4; color: #6a4a07; border: 1px solid #e2c06e; }
+
+  /* terminal */
+  .win { position: absolute; left: 50%; top: 112px; width: 1330px; height: 790px; margin-left: -665px; background: var(--term);
+    border-radius: 18px; box-shadow: 0 40px 80px -30px rgba(15,20,25,.55), 0 0 0 1px rgba(15,20,25,.4); overflow: hidden;
+    transform-origin: 50% 40%; }
+  .bar { height: 44px; background: var(--term-2); display: flex; align-items: center; padding: 0 18px; gap: 9px; }
+  .bar b { width: 13px; height: 13px; border-radius: 50%; background: #3b4658; }
+  .bar span { margin-left: 14px; font: 500 15px var(--mono); color: #8594a8; }
+  .vp { position: absolute; top: 44px; left: 0; right: 0; bottom: 0; overflow: hidden; padding: 18px 30px; }
+  .txt { font: 19.5px/1.27 var(--mono); color: var(--tx); white-space: pre; position: relative; }
+  .ln { height: 1.27em; position: relative; z-index: 1; }
+  .ln.hid { visibility: hidden; }
+  .cmd { color: #fff; }
+  .cmd .p { color: var(--green); font-weight: 700; }
+  .caret { display: inline-block; width: .6em; height: 1.05em; background: var(--green); vertical-align: -.15em; }
+  .hl { position: absolute; left: -14px; right: -14px; height: 1.27em; border-radius: 6px; background: rgba(233,180,76,.16);
+    box-shadow: inset 3px 0 0 var(--amber); z-index: 0; opacity: 0; }
+  .b { font-weight: 700; } .d { opacity: .62; }
+  .f31,.f91 { color: #ff7b72; } .f32,.f92 { color: #7ee2a8; } .f33,.f93 { color: #f2c66d; } .f34,.f94 { color: #8ab4ff; }
+  .f35 { color: #d7a6ff; } .f36 { color: #7fd8d8; } .f37,.f97 { color: #fff; } .f30 { color: #111; }
+  .g41 { background: #c8322b; } .g42 { background: #3fae72; } .g43 { background: #e0a93a; }
+
+  /* captions */
+  #cap { position: absolute; left: 50%; bottom: 38px; transform: translateX(-50%); max-width: 1480px; text-align: center; z-index: 60;
+    font: 500 29px/1.35 var(--sans); color: var(--paper); background: rgb(15,20,25); box-shadow: 0 10px 30px rgba(0,0,0,.25); padding: 12px 26px; border-radius: 14px;
+    letter-spacing: -.005em; }
+  #cap:empty { display: none; }
+
+  /* cards */
+  .card { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; padding: 0 180px; }
+  .kicker { font: 600 22px var(--mono); color: var(--forest-2); letter-spacing: .14em; text-transform: uppercase; margin-bottom: 28px; }
+  .h1 { font: 700 112px/1 var(--sans); letter-spacing: -.045em; color: var(--forest); }
+  .h2 { font: 400 54px/1.18 var(--serif); color: var(--ink); margin-top: 26px; max-width: 1350px; letter-spacing: -.01em; }
+  .h2 em { color: var(--forest-2); }
+  .pills { display: flex; gap: 16px; margin-top: 54px; flex-wrap: wrap; }
+  .pill { font: 600 25px var(--sans); padding: 16px 26px; border-radius: 16px; background: var(--paper); border: 1px solid rgba(15,23,42,.16);
+    box-shadow: 0 10px 30px -18px rgba(15,23,42,.5); opacity: 0; }
+  .pill small { display: block; font: 500 18px var(--sans); color: var(--muted); margin-top: 6px; }
+  .fine { position: absolute; left: 180px; right: 180px; bottom: 150px; font: 400 18px/1.45 var(--sans); color: var(--muted); }
+
+  /* hero */
+  .hero-box { position: absolute; left: 50%; top: 255px; transform: translateX(-50%) scale(.96); background: var(--term); border-radius: 18px;
+    padding: 26px 34px; font: 21px/1.26 var(--mono); color: var(--tx); white-space: pre; box-shadow: 0 50px 90px -30px rgba(15,20,25,.6); }
+  .hero-title { position: absolute; top: 118px; left: 0; right: 0; text-align: center; font: 700 62px/1.05 var(--sans); letter-spacing: -.03em; color: var(--forest); }
+  .hero-title span { color: var(--red); }
+
+  /* investigator */
+  .inv { position: absolute; top: 112px; left: 110px; width: 1080px; height: 800px; overflow: hidden; border-radius: 16px; background: #fff;
+    box-shadow: 0 40px 80px -30px rgba(15,20,25,.45), 0 0 0 1px rgba(15,23,42,.15); }
+  .inv img { position: absolute; left: 0; top: 0; width: 1080px; opacity: 0; }
+  .side { position: absolute; left: 1250px; top: 150px; width: 560px; }
+  .side .tag { font: 600 17px var(--mono); color: var(--forest); background: rgba(15,23,42,.08); padding: 8px 14px; border-radius: 10px; display: inline-block; line-height: 1.5; }
+  .fact { margin-top: 30px; padding: 22px 24px; border-radius: 16px; background: var(--paper); border: 1px solid rgba(15,23,42,.14);
+    opacity: 0; }
+  .fact b { display: block; font: 700 34px var(--sans); letter-spacing: -.02em; }
+  .fact span { font: 500 20px/1.4 var(--sans); color: var(--muted); }
+  .red { color: var(--red); } .grn { color: #2f8f5b; }
+
+  /* step badge on the terminal bar */
+  .bar .ai { margin-left: auto; font: 600 15px var(--mono); padding: 5px 12px; border-radius: 999px; letter-spacing: .02em; }
+  .bar .ai.ai-meta { background: rgba(138,180,255,.16); color: #b9d0ff; box-shadow: inset 0 0 0 1px rgba(138,180,255,.35); }
+  .bar .ai.ai-meta::before { content: "◆ "; color: #8ab4ff; }
+  .bar .ai.ai-rules { background: rgba(126,226,168,.12); color: #9fe9bf; box-shadow: inset 0 0 0 1px rgba(126,226,168,.3); }
+
+  /* two products */
+  .duo { display: flex; gap: 22px; margin-top: 48px; }
+  .prod { flex: 1; max-width: 640px; padding: 26px 30px; border-radius: 20px; background: var(--paper); border: 1px solid rgba(15,23,42,.16);
+    box-shadow: 0 16px 40px -24px rgba(15,23,42,.55); opacity: 0; }
+  .prod b { display: block; font: 700 40px var(--sans); letter-spacing: -.03em; color: var(--forest); }
+  .prod p { font: 500 25px/1.3 var(--sans); color: var(--ink); margin-top: 8px; }
+  .prod small { display: block; font: 600 17px var(--mono); color: var(--muted); margin-top: 14px; letter-spacing: .02em; }
+
+  /* meta */
+  .meta { position: absolute; inset: 0; padding: 165px 150px 0; }
+  .meta .kicker { margin-bottom: 18px; }
+  .meta .h1 { font-size: 84px; }
+  .api { margin-top: 40px; display: flex; align-items: center; gap: 18px; font: 600 24px var(--mono); color: var(--paper);
+    background: var(--forest); border-radius: 16px; padding: 18px 26px; width: fit-content; opacity: 0; }
+  .api span { font: 500 18px var(--mono); color: #94a3b8; }
+  .models { display: flex; gap: 22px; margin-top: 26px; }
+  .model { flex: 1; border-radius: 20px; padding: 24px 28px; background: var(--paper); border: 1px solid rgba(15,23,42,.16); opacity: 0;
+    box-shadow: 0 16px 40px -24px rgba(15,23,42,.55); }
+  .model b { font: 700 36px var(--mono); color: #2b56b8; letter-spacing: -.01em; }
+  .model em { font: 500 19px var(--sans); color: var(--muted); font-style: normal; margin-left: 10px; }
+  .model ul { margin: 16px 0 0; padding-left: 26px; font: 500 27px/1.55 var(--sans); }
+  .feat { display: flex; gap: 12px; margin-top: 24px; opacity: 0; }
+  .feat i { font: 600 18px var(--mono); font-style: normal; padding: 9px 16px; border-radius: 999px; background: rgba(43,86,184,.08); color: #2b56b8; border: 1px solid rgba(43,86,184,.22); }
+  .flow { margin-top: 44px; font: 700 40px var(--sans); letter-spacing: -.02em; color: var(--forest); opacity: 0; }
+  .flow span { color: var(--muted); font-weight: 500; }
+
+  /* end */
+  .tiles { display: flex; gap: 18px; margin-top: 48px; }
+  .tile { background: var(--forest); color: #f8fafc; border-radius: 18px; padding: 22px 28px; min-width: 210px; }
+  .tile b { display: block; font: 700 46px var(--sans); letter-spacing: -.03em; }
+  .tile span { font: 500 19px var(--sans); opacity: .8; }
+  .logo { display: flex; align-items: center; gap: 30px; } .logo .mark { width: 104px; height: 104px; }
+  .url { margin-top: 52px; font: 600 40px var(--mono); color: var(--forest); }
+  .rc-chip { padding: 16px 22px; border-radius: 16px; background: var(--paper); border: 1px solid rgba(15,23,42,.14); box-shadow: 0 14px 34px -22px rgba(15,23,42,.5); opacity: 0; }
+  .rc-chip b { display: block; font: 700 27px var(--sans); letter-spacing: -.02em; color: var(--forest); } .rc-chip span { font: 500 19px var(--sans); color: var(--muted); }
+  .rc-chip.live { border-color: rgba(242,58,46,.45); } .rc-chip.live b { color: #d9481f; }
+  .rc-node { display: flex; align-items: center; gap: 18px; width: 380px; padding: 22px 26px; border-radius: 20px; background: var(--term); opacity: 0; }
+  .rc-node b { display: block; font: 700 34px var(--sans); color: #fff; letter-spacing: -.02em; } .rc-node span { font: 500 17px var(--mono); color: #94a3b8; }
+  .rc-l { font: 600 18px var(--mono); color: var(--forest-2); letter-spacing: .14em; text-transform: uppercase; opacity: 0; }
+  .rc-ans i { font: 600 21px var(--mono); font-style: normal; padding: 13px 20px; border-radius: 999px; background: var(--forest); color: #f8fafc; opacity: 0; }
+  .wm { position: absolute; right: 64px; top: 84px; font: 700 17px var(--mono); color: #8a6512; opacity: .75; letter-spacing: .1em; z-index: 70; }
+</style>
+</head>
+<body>
+<div id="bg"></div><div id="stage"></div>
+<div id="top"><div class="brand"><i></i><span class="word">PRAESIDIA<em>.AI</em></span><small>Jurator</small></div><div id="chip"></div><div id="mode"></div></div>
+<div id="cap"></div>
+<script>
+const FILM = /*FILM*/null;
+const $ = (h) => { const t = document.createElement('template'); t.innerHTML = h.trim(); return t.content.firstChild; };
+const stage = document.getElementById('stage'), cap = document.getElementById('cap'), chip = document.getElementById('chip'), mode = document.getElementById('mode');
+mode.className = FILM.live ? 'live' : 'rehearsal';
+mode.textContent = FILM.live ? 'muse-wonder-1.0 · live take' : 'REHEARSAL · scripted answers';
+// The wordmark is written PRAESIDIA.AI; the narration says only "Praesidia".
+const DOT = '.AI';
+if (!FILM.live) document.body.append($('<div class="wm">SCRIPTED REHEARSAL — NOT A LIVE TAKE</div>'));
+const esc = (s) => s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]);
+
+// When a phrase is spoken: its share of the narration's characters (the same estimate the captions use).
+const cue = (s, w, dflt) => {
+  const m = s.marks && s.marks.find((x) => x.text.includes(w));
+  if (m) return FILM.voiceLead + m.start + (m.end - m.start) * m.text.indexOf(w) / m.text.length;
+  const k = s.voice.indexOf(w); return k < 0 ? dflt : FILM.voiceLead + s.voiceSec * k / s.voice.length;
+};
+
+// Captions: sentences of the narration, each timed by its share of the characters.
+function captionAt(s, local) {
+  const t = local - FILM.voiceLead; if (t < 0 || t > s.voiceSec + .2) return '';
+  if (s.marks) { let m = s.marks[0]; for (const x of s.marks) if (t >= x.start) m = x; return m.text; }
+  const parts = s.voice.match(/[^.!?:]+[.!?:]?(\s|$)/g).map((x) => x.trim()).filter(Boolean);
+  const merged = []; for (const p of parts) (merged.length && merged.at(-1).length + p.length < 95) ? merged[merged.length - 1] += ' ' + p : merged.push(p);
+  const total = merged.reduce((a, p) => a + p.length, 0); let acc = 0;
+  for (const p of merged) { acc += p.length; if (t <= s.voiceSec * acc / total) return p; }
+  return merged.at(-1);
+}
+
+// Every frame is a pure function of t (seconds): render(t) can be called in any order, so the film can be
+// captured frame by frame at an exact 30 fps instead of screen-recorded.
+const clamp = (x) => Math.max(0, Math.min(1, x));
+const easeOut = (x) => 1 - Math.pow(1 - clamp(x), 3);
+const easeInOut = (x) => { x = clamp(x); return x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+// Triangle-weighted average of a step function over the last 0.6 s: a smooth glide with no hidden state.
+const smooth = (fn, l) => { let a = 0, w = 0; for (let j = 0; j < 12; j++) { const k = 12 - j; a += k * fn(Math.max(0, l - j * .05)); w += k; } return a / w; };
+const setStyle = (el, k, v) => { if (el.style[k] !== v) el.style[k] = v; };
+
+// ---------- terminal scene
+function buildTerm(s) {
+  const el = $(`<div class="scene"><div class="win"><div class="bar"><b></b><b></b><b></b><span>${esc(s.win || 'acme-notes — zsh')}</span>${s.ai ? `<i class="ai ${/^no AI/.test(s.ai) || /^rules/.test(s.ai) ? 'ai-rules' : 'ai-meta'}">${esc(s.ai)}</i>` : ''}</div><div class="vp"><div class="txt"><div class="hl"></div></div></div></div></div>`);
+  const txt = el.querySelector('.txt'), win = el.querySelector('.win'), hl = txt.querySelector('.hl'), rows = [];
+  for (const bi of s.blocks) {
+    const b = FILM.blocks[bi];
+    b.html.forEach((h, k) => {
+      const isCmd = !b.comment && k === 0, row = $(`<div class="ln hid"></div>`);
+      if (isCmd) row.innerHTML = `<span class="cmd"><span class="p">$ </span><span class="ty"></span></span>`; else row.innerHTML = h;
+      txt.append(row); rows.push({ row, cmd: isCmd ? b.cmd : null, text: b.text[k], ty: isCmd ? row.querySelector('.ty') : null });
+    });
+    const gap = $('<div class="ln hid"> </div>'); txt.append(gap); rows.push({ row: gap, text: '' });
+  }
+  // Schedule: per block, type the command then reveal its lines; then walk the focus list.
+  const dur = s.duration, budget = Math.min(dur * .42, (3.2 + rows.length * .02) * (FILM.corvane ? .55 : 1)); // corvane cut: faster output reveal, more time on focus
+  const typeSpeed = 42; let t = .35;
+  for (const r of rows) {
+    if (r.cmd) { r.typeT = Math.min(1.6, r.cmd.length / typeSpeed); r.at = t; t += r.typeT + .25; }
+    else { r.at = t; t += budget / rows.length; }
+  }
+  const lineH = 19.5 * 1.27, vpH = 790 - 44 - 36;
+  // Each focus string is found after the previous one (so 'Policy ' means the privacy.01 box's line), else anywhere.
+  let from = 0; const focus = (s.focus || []).map((f) => {
+    const has = (r, k) => r.text && r.text.includes(f);
+    let i = rows.findIndex((r, k) => k >= from && has(r, k)); if (i < 0) i = rows.findIndex(has);
+    if (i >= 0) from = i; return i;
+  }).filter((i) => i >= 0);
+  const fStart = t + .2, fSpan = Math.max(1.1, (dur - .9 - fStart) / Math.max(1, focus.length));
+  const fiAt = (l) => (focus.length && l >= fStart) ? Math.min(focus.length - 1, Math.floor((l - fStart) / fSpan)) : -1;
+  const lastAt = (l) => { let last = -1; for (let k = 0; k < rows.length && rows[k].at <= l; k++) last = k; return last; };
+  const maxScroll = Math.max(0, rows.length * lineH - vpH + lineH);
+  const scrollAt = (l) => {
+    const fi = fiAt(l);
+    if (fi >= 0) return Math.max(0, Math.min(focus[fi] * lineH - vpH * .38, maxScroll));
+    return Math.max(0, (lastAt(l) + 2) * lineH - vpH);
+  };
+  const hlAt = (l) => (focus[Math.max(0, fiAt(l))] ?? 0) * lineH;
+  const bar = el.querySelector('.bar'), labs = [...bar.querySelectorAll('span, i')];
+  return { el, s, win, bar, labs, vp: el.querySelector('.vp'), update(l) {
+    for (const r of rows) {
+      r.row.classList.toggle('hid', l < r.at);
+      if (r.cmd && l >= r.at) {
+        const n = Math.min(r.cmd.length, Math.floor((l - r.at) / r.typeT * r.cmd.length));
+        const caret = n < r.cmd.length ? `<span class="caret" style="opacity:${Math.floor(l * 2.4) % 2 ? .25 : 1}"></span>` : '';
+        const html = esc(r.cmd.slice(0, n)) + caret;
+        if (r.ty.innerHTML !== html) r.ty.innerHTML = html;
+      }
+    }
+    setStyle(txt, 'transform', `translateY(${-smooth(scrollAt, l).toFixed(1)}px)`);
+    setStyle(hl, 'top', smooth(hlAt, l).toFixed(1) + 'px');
+    setStyle(hl, 'opacity', smooth((x) => fiAt(x) >= 0 ? 1 : 0, l).toFixed(3));
+    setStyle(win, 'transform', s.zoom ? `scale(${(1 + .12 * easeInOut((l - fStart) / 1.1)).toFixed(4)})` : '');
+  } };
+}
+
+// ---------- cards
+function buildHero(s) {
+  const b = FILM.blocks[s.blocks[0]];
+  const tops = b.text.map((x, k) => x.startsWith('┏') ? k : -1).filter((k) => k >= 0);
+  const a = tops.find((k) => b.text[k].includes(s.heroId || 'privacy.01')) ?? tops[0], z = b.text.findIndex((x, k) => k > a && x.startsWith('┗'));
+  const lines = b.html.slice(a, z + 1).join('\n');
+  const el = $(`<div class="scene"><div class="hero-title">${s.title || 'An agent broke a privacy promise. <span>Caught before the push.</span>'}</div><div class="hero-box">${lines}</div></div>`);
+  const box = el.querySelector('.hero-box'), title = el.querySelector('.hero-title');
+  return { el, s, update(l) {
+    setStyle(box, 'transform', `translateX(-50%) scale(${(.96 + .07 * easeOut(l / 7)).toFixed(4)})`);
+    setStyle(title, 'opacity', easeOut((l - .3) / .8).toFixed(3));
+  } };
+}
+function buildTitle(s) {
+  const el = $(`<div class="scene"><div class="card">
+    <div class="kicker">Meta AI Developer Hackathon · Startup track</div>
+    <div class="h1 logo"><i class="mark"></i><span><span class="word">PRAESIDIA</span><span class="grad">${DOT}</span></span></div>
+    <div class="h2">Proof for what AI agents do, <em>built on Meta Muse</em>.</div>
+    <div class="duo">
+      <div class="prod"><b>Jurator</b><p>Before code ships: every change checked against the promises in your policies.</p><small>policies → promises → rules · coding agent + git push · chat</small></div>
+      <div class="prod"><b>Investigator</b><p>While agents run: proof that revoked agent work really stops.</p><small>live experiments · destination receipts · bounded repair</small></div>
+    </div></div>
+    <div class="fine">${s.fine ? esc(s.fine) : "Praesidia Investigator (published 2 Nov 2026) is earlier work. Jurator was built in the hackathon sprint and reuses Investigator's Meta Responses provider (about 1,170 lines). Built with Meta Muse models; not a Meta product."}</div></div>`);
+  const cards = [...el.querySelectorAll('.prod')];
+  return { el, s, update(l) { cards.forEach((p, i) => { const k = easeOut((l - [cue(s, 'Jurator', 5), cue(s, 'Investigator', 8)][i]) / .6); setStyle(p, 'opacity', k.toFixed(3)); setStyle(p, 'transform', `translateY(${(16 * (1 - k)).toFixed(1)}px)`); }); } };
+}
+function buildMeta(s) {
+  const el = $(`<div class="scene"><div class="meta">
+    <div class="kicker">How we use Meta</div>
+    <div class="h1">One API. Two Muse models.</div>
+    <div class="api">Meta Responses API <span>api.meta.ai/v1/responses</span></div>
+    <div class="models">
+      <div class="model"><b>muse-wonder-1.0</b><em>the reasoning</em><ul><li>policies → numbered promises with exact quotes</li><li>writes a rule for each promise, binds it to code</li><li>drives Investigator's experiments via tool calls</li></ul></div>
+      <div class="model"><b>muse-spark-1.3</b><em>quick and cheap</em><ul><li>plain-words summary of every finding</li><li>the facts in it come from the program</li></ul></div>
+    </div>
+    <div class="feat"><i>function calling</i><i>JSON-schema structured output</i><i>reasoning effort</i><i>cost tracked per run</i></div>
+    <div class="flow">Models propose <span>→</span> the program decides <span>→</span> rules run with no AI</div>
+  </div></div>`);
+  const items = [el.querySelector('.api'), ...el.querySelectorAll('.model'), el.querySelector('.feat'), el.querySelector('.flow')];
+  const at = [.6, cue(s, 'Muse Wonder', 2.6), cue(s, 'Muse Spark', 9), cue(s, 'tool calls', 6), cue(s, 'The models propose', 12)];
+  return { el, s, update(l) { items.forEach((p, i) => { const k = easeOut((l - at[i]) / .6); setStyle(p, 'opacity', k.toFixed(3)); setStyle(p, 'transform', `translateY(${(14 * (1 - k)).toFixed(1)}px)`); }); } };
+}
+function buildInv(s) {
+  const imgs = FILM.images.map((src) => `<img src="${src}">`).join('');
+  const el = $(`<div class="scene"><div class="inv">${imgs}</div><div class="side">
+    <div class="tag">Previously recorded live investigation<br>Meta Responses · muse-wonder-1.0<br>55 model tool calls · authored HTTP workflow</div>
+    <div class="fact"><b class="red">Revoked at #2 · accepted at #4</b><span>The worker said “cancelled”. The destination receipt says the export still happened.</span></div>
+    <div class="fact"><b>One bounded repair</b><span>The worker re-checks that its root's authority is still active before dispatch.</span></div>
+    <div class="fact"><b class="grn">4 of 4 checks pass</b><span>Retired work stops; independent and earlier legitimate work still succeed.</span></div>
+  </div></div>`);
+  const im = [...el.querySelectorAll('img')], facts = [...el.querySelectorAll('.fact')], half = s.duration / 2;
+  const pan = [330, 820];
+  return { el, s, update(l) {
+    im.forEach((m, i) => {
+      const from = i * half;
+      setStyle(m, 'opacity', easeOut((l - from) / .6).toFixed(3));
+      setStyle(m, 'transform', `translateY(${(-pan[i] * easeInOut((l - from - .8) / 7)).toFixed(1)}px)`);
+    });
+    facts.forEach((f, i) => { const k = easeOut((l - [1.5, half + .5, half + 4][i]) / .6); setStyle(f, 'opacity', k.toFixed(3)); setStyle(f, 'transform', `translateX(${(16 * (1 - k)).toFixed(1)}px)`); });
+  } };
+}
+function buildStats(s) {
+  const el = $(`<div class="scene"><div class="card">
+    <div class="kicker">${esc(s.kicker)}</div>
+    <div class="h1" style="font-size:92px">${s.h1}</div>
+    <div class="tiles">${s.tiles.map(([b, l]) => `<div class="tile"><b>${esc(b)}</b><span>${esc(l)}</span></div>`).join('')}</div>
+    ${s.h2 ? `<div class="h2">${s.h2}</div>` : ''}</div></div>`);
+  const ts = [...el.querySelectorAll('.tile')];
+  return { el, s, update(l) { ts.forEach((p, i) => { const k = easeOut((l - .5 - i * .45) / .5); setStyle(p, 'opacity', k.toFixed(3)); setStyle(p, 'transform', `translateY(${(16 * (1 - k)).toFixed(1)}px)`); }); } };
+}
+function buildEnd(s) {
+  const c = FILM.cost;
+  const tiles = FILM.tiles ? `<div class="tiles">${FILM.tiles.map(([b, l]) => `<div class="tile"><b>${esc(b)}</b><span>${esc(l)}</span></div>`).join('')}</div>` : FILM.live ? `<div class="tiles">
+      <div class="tile"><b>${c.compile}</b><span>compile policies</span></div><div class="tile"><b>${c.rules}</b><span>write + prove rules</span></div>
+      <div class="tile"><b>${c.check}</b><span>first check of main</span></div><div class="tile"><b>${c.diff}</b><span>checking the agent's change</span></div></div>` : '';
+  const el = $(`<div class="scene"><div class="card">
+    <div class="kicker">Jurator + Investigator · built on Meta Muse</div>
+    <div class="h1 logo"><i class="mark"></i><span><span class="word">PRAESIDIA</span><span class="grad">${DOT}</span></span></div>
+    <div class="h2">Models propose. <em>Rules decide.</em> Every record verifies with no AI.</div>${tiles}
+    ${FILM.plainBrand ? '' : '<div class="url">praesidia.ai</div>'}</div>
+    <div class="fine">${FILM.corvane ? 'Corvane is fictional. The agent hook call is simulated. ' : ''}Built with Meta Muse models; not a Meta product. ${FILM.live ? 'Costs measured on the live takes in this film.' : 'Scripted rehearsal: no model calls.'}</div></div>`);
+  return { el, s };
+}
+
+// ---------- beyond the code: what the tools read, what they check, where answers go (only things that exist)
+function buildReach(s) {
+  const chipEl = (x, y, w, txt, cls = '') => `<div class="rc-chip ${cls}" style="position:absolute;left:${x}px;top:${y}px;width:${w}px">${txt}</div>`;
+  const node = (x, y, name, sub) => `<div class="rc-node" style="position:absolute;left:${x}px;top:${y}px"><i class="mark" style="width:44px;height:44px"></i><div><b>${name}</b><span>${sub}</span></div></div>`;
+  const L = [['Policy files', 'Markdown in any repo'], ['Praesidia', 'agent policy exports'], ['Git', 'every repo, any commit']];
+  const R = [['Application code', 'guards, calls, constants'], ['Config', 'keys and allowlists'], ['Infrastructure as code', 'regions, stacks, TLS']];
+  const A = ['git pre-push', 'Muse Code hook', 'MCP · read-only', 'JSON · Markdown · exit codes', 'HTML report · signed-off record'];
+  const ly = [330, 430, 530], ry = [300, 400, 500], two = (a, b) => `<b>${a}</b><span>${b}</span>`;
+  const path = (x1, y1, x2, y2) => `<path d="M${x1} ${y1} C${(x1 + x2) / 2} ${y1} ${(x1 + x2) / 2} ${y2} ${x2} ${y2}"/>`;
+  const el = $(`<div class="scene">
+    <div class="rc-k kicker" style="position:absolute;left:150px;top:128px">Beyond the code</div>
+    <div class="rc-h" style="position:absolute;left:150px;top:170px;font:700 64px/1 var(--sans);letter-spacing:-.035em;color:var(--forest)">Reads your policies. Checks your stack.</div>
+    <div class="rc-l" style="position:absolute;left:150px;top:292px">reads</div><div class="rc-l" style="position:absolute;left:1340px;top:262px">checks</div>
+    <svg class="rc-svg" width="1920" height="1080" style="position:absolute;inset:0;overflow:visible">
+      <defs><linearGradient id="rcg" x1="0" x2="1"><stop offset="0" stop-color="#fb8c0a"/><stop offset="1" stop-color="#f23a2e"/></linearGradient></defs>
+      <g class="rc-in">${ly.map((y) => path(560, y + 34, 770, 450)).join('')}</g>
+      <g class="rc-out">${ry.map((y) => path(1150, 450, 1340, y + 34)).join('')}</g>
+      <g class="rc-inv">${path(1150, 680, 1340, 680)}</g>
+      <g class="rc-dots"></g></svg>
+    ${L.map(([a, b], k) => chipEl(150, ly[k], 410, two(a, b), 'in')).join('')}
+    ${R.map(([a, b], k) => chipEl(1340, ry[k], 430, two(a, b), 'out')).join('')}
+    ${chipEl(1340, 646, 430, two('Live systems', 'experiments over HTTP'), 'live')}
+    ${node(770, 400, 'Jurator', 'rules · no AI at check time')}
+    ${node(770, 630, 'Investigator', 'runtime experiments')}
+    <div class="rc-l" style="position:absolute;left:150px;top:788px">answers in</div>
+    <div class="rc-ans" style="position:absolute;left:150px;top:822px;display:flex;gap:14px">${A.map((a) => `<i>${a}</i>`).join('')}</div>
+  </div>`);
+  const q = (c) => el.querySelector(c), qa = (c) => [...el.querySelectorAll(c)];
+  const head = [q('.rc-k'), q('.rc-h')], labels = qa('.rc-l'), nodes = qa('.rc-node'), ins = qa('.rc-chip.in'), outs = qa('.rc-chip.out'), live = q('.rc-chip.live');
+  const ans = qa('.rc-ans i'), pIn = qa('.rc-in path'), pOut = qa('.rc-out path'), pInv = qa('.rc-inv path'), dots = q('.rc-dots');
+  [...pIn, ...pOut, ...pInv].forEach((p) => { p.setAttribute('fill', 'none'); p.setAttribute('stroke', 'url(#rcg)'); p.setAttribute('stroke-width', '2.5'); });
+  const tIn = cue(s, 'Policies', 1.6), tOut = cue(s, 'Rules check', 3.6), tAns = cue(s, 'Answers', 5.6), tInv = cue(s, 'Investigator', tOut + 1.6);
+  let lens = null; const dotEls = [];
+  const rise = (e, at, dx = 0, dy = 18) => { const k = ex((l0 - at) / .55); setStyle(e, 'opacity', k.toFixed(3)); setStyle(e, 'transform', `translate(${(dx * (1 - k)).toFixed(1)}px,${(dy * (1 - k)).toFixed(1)}px)`); return k; };
+  let l0 = 0;
+  const draw = (ps, at, dir) => ps.forEach((p, i) => {
+    const len = lens.get(p), k = ex((l0 - at - .25 - i * .1) / .6);
+    p.setAttribute('stroke-dasharray', len.toFixed(1)); p.setAttribute('stroke-dashoffset', (len * (1 - k)).toFixed(1));
+    // a pulse runs along each drawn line: a pure function of time, toward Jurator for inputs, away for outputs
+    const d = dotEls[ps === pIn ? i : ps === pOut ? 3 + i : 6], ph = ((l0 * .55 + i * .31) % 1), u = dir > 0 ? ph : 1 - ph;
+    const pt = p.getPointAtLength(len * u); d.setAttribute('cx', pt.x.toFixed(1)); d.setAttribute('cy', pt.y.toFixed(1));
+    d.setAttribute('opacity', k >= 1 ? (Math.sin(Math.PI * ph) * .95).toFixed(3) : 0);
+  });
+  return { el, s, update(l) {
+    l0 = l;
+    if (!lens) { lens = new Map([...pIn, ...pOut, ...pInv].map((p) => [p, p.getTotalLength()]));
+      for (let k = 0; k < 7; k++) { const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle'); c.setAttribute('r', '5'); c.setAttribute('fill', '#f23a2e'); dots.append(c); dotEls.push(c); } }
+    head.forEach((e, i) => rise(e, .15 + i * .12));
+    labels.forEach((e, i) => rise(e, [tIn - .2, tOut - .2, tAns - .2][i], 0, 8));
+    rise(nodes[0], .5, 0, 24); rise(nodes[1], tInv - .3, 0, 24);
+    ins.forEach((e, i) => rise(e, tIn + i * .14, -30, 0)); outs.forEach((e, i) => rise(e, tOut + .4 + i * .14, 30, 0));
+    rise(live, tInv + .4, 30, 0); ans.forEach((e, i) => rise(e, tAns + i * .12, 0, 22));
+    draw(pIn, tIn, 1); draw(pOut, tOut, 1); draw(pInv, tInv, 1);
+    const glow = ex((l - tInv) / .6); setStyle(nodes[1], 'boxShadow', `0 0 0 ${(3 * glow).toFixed(2)}px rgba(242,58,46,.55), 0 30px 60px -28px rgba(15,20,25,.6)`);
+  } };
+}
+
+// ---------- intro: "Rule, then proof\" (expo snaps, one hard wipe, logo build, handoff into the next scene's dark box)
+const ex = (x) => { x = clamp(x); return x >= 1 ? 1 : 1 - Math.pow(2, -10 * x); };
+function buildIntro(s) {
+  const G = 'linear-gradient(135deg,#fb8c0a,#f23a2e)', C = (r) => (2 * Math.PI * r).toFixed(2);
+  const words = (t, cls = '') => t.split(' ').map((w) => `<span class="iw ${cls}" style="display:inline-block;white-space:pre">${w}</span>`).join('<span style="display:inline-block;width:.28em"></span>');
+  const line = (top, html) => `<div class="il" style="position:absolute;left:0;right:0;top:${top}px;height:140px;text-align:center;font:600 120px/140px var(--sans);color:#0f172a;white-space:nowrap">${html}</div>`;
+  const grad = `background:${G};-webkit-background-clip:text;background-clip:text;color:transparent`;
+  const chipH = (n, r) => `<div class="ic" style="font:500 22px var(--mono);color:#cbd5e1;border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:14px 28px;opacity:0"><b style="color:#fff;font-weight:500">${n}</b> · ${r}</div>`;
+  const ring = (r, w, st) => `<circle class="${st}" cx="100" cy="100" r="${r}" fill="none" stroke="${st === 'rw' ? '#fff' : 'url(#ig)'}" stroke-width="${w}" stroke-dasharray="${C(r)}" stroke-dashoffset="${C(r)}"/>`;
+  const el = $(`<div class="scene">
+    <div class="ih" style="position:absolute;left:360px;width:1200px;top:539px;height:2px;background:${G};transform-origin:0 0;transform:scaleX(0)"></div>
+    <div class="ik">${line(270, words('An AI agent'))}${line(410, words('changed your <u>code.</u>'.replace('<u>code.</u>', 'code.')))}${line(520, words('Who signed off?', 'g3'))}</div>
+    <div class="ip" style="position:absolute;inset:0;background:#0f1419;clip-path:inset(100% 0 0 0)"></div>
+    <div class="im" style="position:absolute;left:875px;top:290px;width:170px;height:170px;visibility:hidden"><svg viewBox="0 0 200 200" width="170" height="170" style="overflow:visible;display:block">
+      <defs><linearGradient id="ig" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="200" y2="200"><stop offset="0" stop-color="#fb8c0a"/><stop offset="1" stop-color="#f23a2e"/></linearGradient></defs>
+      <circle class="rc" cx="100" cy="100" r="40" fill="#f39613"/>${ring(52, 24, 'rw')}${ring(82, 36, 'rg')}
+      <circle class="rp" cx="100" cy="100" r="100" fill="none" stroke="url(#ig)" stroke-width="2" opacity="0"/></svg></div>
+    <div class="iwm" style="position:absolute;left:0;right:0;top:490px;text-align:center"><span style="display:inline-block;font:700 72px/90px var(--sans);color:#fff;white-space:nowrap">PRAESIDIA<span style="${grad}">.AI</span></span></div>
+    <div class="ich" style="position:absolute;left:0;right:0;top:650px;display:flex;justify-content:center;gap:24px">${chipH('Jurator', 'rules on every change')}${chipH('Investigator', 'proof revoked work stops')}</div>
+    <div class="if" style="position:absolute;left:64px;bottom:40px;font:400 18px var(--sans);color:#64748b;opacity:0">Built with Meta Muse models; not a Meta product.</div>
+    <div class="if" style="position:absolute;right:64px;bottom:40px;font:400 18px var(--sans);color:#64748b;opacity:0">Corvane, the company in this demo, is fictional.</div></div>`);
+  // underline on "code."
+  const q = (c) => el.querySelector(c), qa = (c) => [...el.querySelectorAll(c)];
+  const lines = qa('.il'), w1 = lines[0].querySelectorAll('.iw'), w2 = lines[1].querySelectorAll('.iw'), w3 = lines[2].querySelectorAll('.iw');
+  w3.forEach((w) => w.setAttribute('style', w.getAttribute('style') + ';' + grad));
+  const code = w2[2]; code.style.position = 'relative';
+  code.insertAdjacentHTML('beforeend', `<i class="iu" style="position:absolute;left:0;right:0;bottom:6px;height:2px;background:${G};transform-origin:0 0;transform:scaleX(0)"></i>`);
+  const hairline = q('.ih'), kin = q('.ik'), panel = q('.ip'), mark = q('.im'), wm = q('.iwm'), chips = qa('.ic'), foots = qa('.if'), under = q('.iu');
+  const rc = q('.rc'), rw = q('.rw'), rg = q('.rg'), rp = q('.rp');
+  const dur = s.duration, hs = dur - 1;
+  const tl1 = .4, tl2 = cue(s, 'changed', 1.6), tw = Math.max(cue(s, 'Who', 2.6), tl2 + 1.0);
+  const tpan = Math.max(cue(s, 'Praesidia', 4.1) - .5, tw + 1.0), L = tpan + .5;
+  const tWm = L + .9, c1 = Math.min(Math.max(cue(s, 'Jurator', 5.6), L + 1.0), hs - 1.5), c2 = Math.max(c1 + .18, Math.min(cue(s, 'Investigator', 6.4), hs - 1.0));
+  // Next scene's dark box, measured once (it is display:none while the intro plays).
+  let box = null;
+  const measure = () => {
+    if (box) return box;
+    box = { l: 330, t: 255, w: 1260, h: 420 };
+    const nx = scenes[FILM.scenes.indexOf(s) + 1], b = nx && nx.el.querySelector('.hero-box');
+    if (b) { const d = nx.el.style.display; nx.el.style.display = 'block'; const oh = b.offsetHeight, w = b.offsetWidth * .96, h = oh * .96; nx.el.style.display = d;
+      if (w && h) box = { l: (1920 - w) / 2, t: 255 + (oh - h) / 2, w, h }; }
+    return box;
+  };
+  const dash = (c, r, p, rot) => { c.setAttribute('stroke-dashoffset', (2 * Math.PI * r * (1 - ex(p))).toFixed(2)); c.setAttribute('transform', `rotate(${(rot * (1 - ex(p))).toFixed(2)} 100 100)`); };
+  const snap = (ws, base, l) => ws.forEach((w, i) => { const p = ex((l - base - i * .12) / .45);
+    setStyle(w, 'opacity', p.toFixed(3)); setStyle(w, 'transform', `translateY(${(36 * (1 - p)).toFixed(1)}px)`); setStyle(w, 'letterSpacing', (.08 * (1 - p)).toFixed(4) + 'em'); });
+  return { el, s, update(l) {
+    setStyle(hairline, 'transform', `scaleX(${ex(l / .4).toFixed(4)})`);
+    setStyle(hairline, 'opacity', (1 - clamp((l - tl1) / .5)).toFixed(3));
+    snap(w1, tl1, l); snap(w2, tl2, l); snap(w3, tw, l);
+    setStyle(under, 'transform', `scaleX(${ex((l - tl2 - .5) / .4).toFixed(4)})`);
+    const m = easeInOut((l - tw) / .4);
+    [0, 1].forEach((k) => { setStyle(lines[k], 'transform', `translateY(${(-90 * m).toFixed(1)}px)`); setStyle(lines[k], 'opacity', (1 - .65 * m).toFixed(3)); });
+    setStyle(kin, 'display', l >= tpan + .5 ? 'none' : 'block');
+    // dark panel: wipe up, then (handoff) shrink to the next scene's box
+    const e = easeInOut((l - hs) / 1), b = measure();
+    setStyle(panel, 'clipPath', l < hs ? `inset(${(100 * (1 - easeInOut((l - tpan) / .5))).toFixed(2)}% 0 0 0)`
+      : `inset(${(b.t * e).toFixed(1)}px ${(1920 - b.l - b.w) * e}px ${(1080 - b.t - b.h) * e}px ${(b.l * e).toFixed(1)}px round ${(18 * e).toFixed(1)}px)`);
+    // logo
+    const p = (l - L) / .6, k = p <= 0 ? 0 : p < .6 ? 1.08 * ex(p / .6) : 1.08 - .08 * easeInOut((p - .6) / .4);
+    setStyle(mark, 'visibility', l >= L ? 'visible' : 'hidden');
+    rc.setAttribute('transform', `translate(100 100) scale(${k.toFixed(4)}) translate(-100 -100)`);
+    dash(rw, 52, (l - L - .15) / .7, -90); dash(rg, 82, (l - L - .3) / .8, 90);
+    const rr = clamp((l - L - 1.1) / .4); rp.setAttribute('transform', `translate(100 100) scale(${(1 + .6 * rr).toFixed(3)}) translate(-100 -100)`);
+    rp.setAttribute('opacity', rr > 0 && rr < 1 ? (.6 * (1 - rr)).toFixed(3) : 0);
+    const g = ex((l - L) / .9);
+    setStyle(mark, 'transform', `translate(${((81 - 960) * e).toFixed(1)}px,${((51 - 375) * e + 24 * (1 - g)).toFixed(1)}px) rotate(${(-8 * (1 - g)).toFixed(2)}deg) scale(${(1 - .8 * e).toFixed(4)})`);
+    // wordmark + chips (fade out and up during handoff)
+    const out = easeInOut((l - hs) / .5), up = `translateY(${(-16 * out).toFixed(1)}px)`, wp = ex((l - tWm) / .7);
+    setStyle(wm, 'opacity', (1 - out).toFixed(3)); setStyle(wm, 'transform', up);
+    const sp = wm.firstChild; setStyle(sp, 'clipPath', `inset(0 ${(100 * (1 - wp)).toFixed(2)}% 0 0)`); setStyle(sp, 'letterSpacing', (.18 - .06 * wp).toFixed(4) + 'em');
+    chips.forEach((c, i) => { const q2 = ex((l - [c1, c2][i]) / .5); setStyle(c, 'opacity', (q2 * (1 - out)).toFixed(3)); setStyle(c, 'transform', `translateY(${(20 * (1 - q2) - 16 * out).toFixed(1)}px)`); });
+    foots.forEach((f) => setStyle(f, 'opacity', (easeOut((l - tpan - .5) / .4) * (1 - out)).toFixed(3)));
+  } };
+}
+
+const scenes = FILM.scenes.map((s) => ({ intro: buildIntro, term: buildTerm, hero: buildHero, title: buildTitle, meta: buildMeta, investigator: buildInv, end: buildEnd, stats: buildStats, reach: buildReach })[s.kind](s));
+scenes.forEach((x, k) => { x.el.style.zIndex = k; stage.append(x.el); });
+const topBar = document.getElementById('top'), brand = topBar.querySelector('.brand');
+const topOn = (k) => ['title', 'end', 'stats', 'intro'].includes(FILM.scenes[k].kind) ? 0 : 1;
+let current = -1;
+const bg = document.getElementById('bg');
+// How a scene looks during a transition; with no options, its resting look.
+function look(x, o = {}) {
+  setStyle(x.el, 'opacity', o.o == null ? '1' : (+o.o).toFixed(3)); setStyle(x.el, 'transform', o.tr || ''); setStyle(x.el, 'filter', o.fi || '');
+  if (!x.vp) return;
+  setStyle(x.vp, 'transform', o.vpT || ''); setStyle(x.vp, 'opacity', o.vpO == null ? '' : (+o.vpO).toFixed(3)); setStyle(x.vp, 'filter', o.vpF || '');
+  setStyle(x.win, 'background', o.winBg || ''); setStyle(x.bar, 'background', o.barBg || '');
+  x.labs.forEach((e) => setStyle(e, 'opacity', o.lab == null ? '' : (+o.lab).toFixed(3)));
+}
+window.render = (t) => {
+  let i = FILM.scenes.findIndex((s) => t >= s.start && t < s.start + s.duration);
+  if (i < 0) i = FILM.scenes.length - 1;
+  const s = FILM.scenes[i], local = t - s.start, fromIntro = i > 0 && FILM.scenes[i - 1].kind === 'intro';
+  const p = i === 0 ? 1 : clamp(local / (fromIntro ? .3 : .75)), f = easeInOut(p), cur = scenes[i], prev = p < 1 ? scenes[i - 1] : null;
+  if (i !== current) { chip.textContent = s.chip; brand.lastChild.textContent = s.kind === 'investigator' ? 'Investigator' : s.kind === 'meta' ? 'Built on Meta' : (s.product || 'Jurator'); current = i; }
+  scenes.forEach((x, k) => setStyle(x.el, 'display', (k === i || (prev && k === i - 1)) ? 'block' : 'none'));
+  if (prev) prev.update?.(FILM.scenes[i - 1].duration);
+  cur.update?.(local);
+  if (!prev) look(cur);
+  else if (cur.vp && prev.vp) { // one terminal: the window stays put, the old output lifts away and the new output rises in
+    look(prev, { vpT: `translateY(${(-80 * f).toFixed(1)}px)`, vpO: 1 - f, vpF: `blur(${(4 * f).toFixed(2)}px)`, lab: 1 - f });
+    look(cur, { winBg: 'transparent', barBg: 'transparent', vpT: `translateY(${(60 * (1 - f)).toFixed(1)}px)`, vpO: f, lab: f });
+  } else if (fromIntro) { look(prev); look(cur, { o: f }); } // the intro's dark panel has already become the next scene's box
+  else { // camera push: the old scene falls back out of focus, the new one comes into focus
+    const a = easeInOut(p / .6), b = easeOut((p - .35) / .65); // old leaves first, new arrives after: no stacked cards
+    look(prev, { tr: `scale(${(1 + .06 * a).toFixed(4)})`, fi: `blur(${(10 * a).toFixed(2)}px)`, o: 1 - a });
+    look(cur, { o: b, tr: `scale(${(.955 + .045 * b).toFixed(4)})`, fi: `blur(${(12 * (1 - b)).toFixed(2)}px)` });
+  }
+  setStyle(topBar, 'opacity', (i === 0 ? topOn(0) : topOn(i - 1) + (topOn(i) - topOn(i - 1)) * f).toFixed(3));
+  const ck = i === 0 ? 1 : ex((local - .2) / .6); // the chapter chip swaps in with the scene
+  setStyle(chip, 'opacity', ck.toFixed(3)); setStyle(chip, 'transform', `translateY(${(12 * (1 - ck)).toFixed(1)}px)`);
+  setStyle(bg, 'transform', `translate(${(50 * Math.sin(t * .11)).toFixed(1)}px,${(36 * Math.cos(t * .083)).toFixed(1)}px)`); // slow drifting light
+  const c = s.kind === 'intro' ? '' : captionAt(s, local); if (cap.textContent !== c) cap.textContent = c;
+};
+window.play = () => {
+  const t0 = performance.now();
+  const frame = () => { const t = (performance.now() - t0) / 1000; window.render(Math.min(t, FILM.total)); if (t >= FILM.total) window.done = true; else requestAnimationFrame(frame); };
+  requestAnimationFrame(frame);
+};
+window.render(0);
+if (location.hash === '#preview') window.play();
+</script>
+</body>
+</html>

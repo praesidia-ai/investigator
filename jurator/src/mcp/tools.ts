@@ -211,7 +211,7 @@ function promisesForChange(deps: McpDeps): ToolDefinition {
       const files = [...new Set(parsed.data.files.map((f) => toRepoPath(repo.root, f)))].sort();
       const rules = await store.readRules();
       const promises = (await store.readPromises())
-        .filter((p) => p.status === 'accepted' && p.checkable !== 'runtime')
+        .filter((p) => p.status === 'accepted')
         .sort(byId);
       const hits = promises
         .map((p) => {
@@ -226,7 +226,7 @@ function promisesForChange(deps: McpDeps): ToolDefinition {
         kind: p.kind,
         checkable: p.checkable,
         policy: policyOf(p, sources),
-        checkedBy: p.checkable === 'process' ? 'checklist' : accepted.length > 0 ? 'rule' : 'none',
+        checkedBy: p.checkable === 'runtime' ? 'runtime' : p.checkable === 'process' ? 'checklist' : accepted.length > 0 ? 'rule' : 'none',
         rules: accepted.map(ruleJson),
         files: matched,
       }));
@@ -240,7 +240,9 @@ function promisesForChange(deps: McpDeps): ToolDefinition {
       const lines = [`${items.length} promise${items.length === 1 ? '' : 's'} apply to ${files.join(', ')}. Respect them while you edit:`];
       for (const [n, i] of items.entries()) {
         const how =
-          i.checkedBy === 'rule'
+          i.checkedBy === 'runtime'
+            ? 'runtime promise: enforced while running, not code-checked'
+            : i.checkedBy === 'rule'
             ? `checked by ${i.rules.map((r) => r.id).join(', ')} (no AI)`
             : i.checkedBy === 'checklist'
               ? 'a person confirms it before merge'

@@ -4,12 +4,13 @@ import { dirname, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { BRAND } from '../../brand.js';
 import { displayPath, loadReportInput, renderReport } from '../../report/index.js';
+import { runToSarif } from '../../report/sarif.js';
 import { JuratorError } from '../../util/errors.js';
 import { findRepoRoot, openStore } from '../../workspace/index.js';
 import type { Command } from '../context.js';
 
 const DEFAULT_OUT = `${BRAND.command}-report.html`;
-const USAGE = `${BRAND.command} report [<run.json>] [--out ${DEFAULT_OUT}] [--json]`;
+const USAGE = `${BRAND.command} report [<run.json>] [--format html|sarif] [--out ${DEFAULT_OUT}] [--json]`;
 
 const command: Command = {
   name: 'report',
@@ -20,7 +21,7 @@ const command: Command = {
     try {
       parsed = parseArgs({
         args: [...ctx.argv],
-        options: { out: { type: 'string', short: 'o' }, json: { type: 'boolean' } },
+        options: { out: { type: 'string', short: 'o' }, json: { type: 'boolean' }, format: { type: 'string' } },
         allowPositionals: true,
         strict: true,
       });
@@ -30,6 +31,11 @@ const command: Command = {
     }
     if (parsed.positionals.length > 1) {
       ctx.err(`One run at a time. Usage: ${USAGE}`);
+      return 2;
+    }
+    const format = parsed.values.format ?? 'html';
+    if (format !== 'html' && format !== 'sarif') {
+      ctx.err(`Unknown format ${JSON.stringify(format)}. Usage: ${USAGE}`);
       return 2;
     }
     try {
@@ -44,9 +50,13 @@ const command: Command = {
         ...(runArg ? { runPath: resolve(ctx.cwd, runArg) } : {}),
         now: ctx.now,
       });
-      const out = resolve(ctx.cwd, parsed.values.out ?? DEFAULT_OUT);
+      if (format === 'sarif' && !input.run) {
+        ctx.err(`No check run to export.\nNext: ${BRAND.command} check`);
+        return 2;
+      }
+      const out = resolve(ctx.cwd, parsed.values.out ?? (format === 'sarif' ? `${BRAND.command}.sarif` : DEFAULT_OUT));
       await mkdir(dirname(out), { recursive: true });
-      await writeFile(out, renderReport(input), 'utf8');
+      await writeFile(out, format === 'sarif' ? `${JSON.stringify(runToSarif(input.run!), null, 2)}\n` : renderReport(input), 'utf8');
       const shown = displayPath(out, ctx.cwd);
       if (parsed.values.json) {
         ctx.out(JSON.stringify({ out, run: input.run?.id ?? null, promises: input.promises.length, rules: input.rules.length }, null, 2));

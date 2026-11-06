@@ -32,6 +32,8 @@ import {
 } from '../bindings/index.js';
 import {
   cacheKeyFor,
+  engineIdentity,
+  readerIdentity,
   lastVerified,
   lookup,
   policyStateOf,
@@ -41,7 +43,7 @@ import {
   type ReanchorFn,
 } from '../cache/index.js';
 import { rememberRepoCommits, repoCommitsFor, resolveBase } from '../git/index.js';
-import { runRule as realRunRule } from '../rules/index.js';
+import { runRule as realRunRule, loadSemanticAdapters, assuranceFor } from '../rules/index.js';
 import { NOTHING_TO_CHECK, type RunOptions } from '../rules/engine.js';
 import { checkBindings, constraintOf, mergeById, valueBindings, workspaceAt } from './at-commit.js';
 import { readFile } from 'node:fs/promises';
@@ -617,7 +619,7 @@ type Reader = Pick<ModelClient, 'id' | 'mode'> | null;
 export function usable(result: CheckResult, ruleCount: number, reader: Reader): boolean {
   if (result.level === 'rule') return ruleCount > 0;
   if (ruleCount > 0) return false;
-  if (result.level === 'ai-read') return reader !== null && (!result.model || result.model.mode === reader.mode);
+  if (result.level === 'ai-read') return reader !== null && (!result.model || (result.model.id === reader.id && result.model.mode === reader.mode));
   // quick: only when this run would not read it either (no reader), or nothing could be read (no files).
   return reader === null || result.reason === 'no code files in its scope';
 }
@@ -694,12 +696,17 @@ export async function runCheck(options: CheckOptions, deps: CheckDeps = {}): Pro
   const policyState = policyStateOf([...effective.values()], rules);
   const full = deps.full === true;
   const reader: Reader = options.aiRead && options.model ? options.model : null;
+  const readerKey = { id: reader?.id ?? config.model.id, effort: config.model.reasoningEffort };
+  const readerIdentityNow = reader ? readerIdentity(readerKey) : null;
+  await quietly(() => loadSemanticAdapters(rules), undefined);
 
   // Bindings: where each promise lives in the code. In a diff, a touched bound line selects its promise.
   const acceptedIds = new Set(accepted.map((p) => p.id));
   const bindings = (await quietly(() => (deps.readBindings ?? realReadBindings)(store), [] as Binding[])).filter((b) =>
     acceptedIds.has(b.promiseId),
   );
+  // bindings.json is not in policy state and .jurator is untracked: its content must reach the fast-path identity.
+  const engine = engineIdentity(rules, config.codeScope, bindings);
   const triggers = new Map<string, string[]>();
   if (baseSha && bindings.length > 0) {
     const changes = await quietly(() => (deps.changedLines ?? realChangedLines)(repo, baseSha, head), [] as LineChange[]);
@@ -755,7 +762,8 @@ export async function runCheck(options: CheckOptions, deps: CheckDeps = {}): Pro
   let skipped: { results: CheckResult[] } | null = null;
   const prev = full ? null : await quietly(() => lastVerified(store), null);
   const cleanHere = !(snapshot.dirty && snapshot.commit === head);
-  if (prev && cleanHere && prev.commit === head && prev.policyState === policyState) {
+  // Old verified files carry no engine identity: a miss. A different reader only matters for non-rule answers.
+  if (prev && prev.engine === engine && cleanHere && prev.commit === head && prev.policyState === policyState) {
     const prevRun = await readRunFile(store.dir, prev.runId);
     if (prevRun && prevRun.status === 'completed') {
       const byId = new Map(prevRun.results.map((r) => [r.promiseId, r] as const));
@@ -763,6 +771,7 @@ export async function runCheck(options: CheckOptions, deps: CheckDeps = {}): Pro
       for (const p of toCheck) {
         const r = byId.get(p.id);
         if (!r || !usable(r, rulesFor(p.id).length, reader)) break;
+        if (r.level !== 'rule' && (prev.reader ?? null) !== readerIdentityNow) break;
         copied.push(withTrigger({ ...r, ...base(p), reused: r.reused ?? { fromRun: prevRun.id, fromCommit: prev.commit } }));
       }
       if (copied.length === toCheck.length) skipped = { results: copied };
@@ -797,6 +806,7 @@ export async function runCheck(options: CheckOptions, deps: CheckDeps = {}): Pro
                 : scopeOf(p, config),
             ),
             deps.reanchor,
+            { reader: pr.length === 0 && reader ? readerKey : null, codeScope: config.codeScope },
           ),
         undefined as string | undefined,
       );
@@ -812,7 +822,15 @@ export async function runCheck(options: CheckOptions, deps: CheckDeps = {}): Pro
       return key ? { result, failed: outcome.failed, reused: false, key } : { result, failed: outcome.failed, reused: false };
     });
   }
-  const results = outcomes.map((o) => o.result);
+  // Assurance is read fresh each run (never cached): a newly known open counterexample shows on a reused answer too.
+  const withAssurance = async (r: CheckResult): Promise<CheckResult> => {
+    const { assurance: _old, ...rest } = r;
+    void _old;
+    if (r.level !== 'rule') return rest;
+    const a = await quietly(() => assuranceFor(store.dir, rulesFor(r.promiseId), { promise: accepted.find((x) => x.id === r.promiseId), repo, commit: head }), undefined);
+    return a ? { ...rest, assurance: a } : rest;
+  };
+  const results = await Promise.all(outcomes.map((o) => withAssurance(o.result)));
   const count = (v: Verdict): number => results.filter((r) => r.verdict === v).length;
   const codePromises = accepted.filter((p) => p.checkable === 'code');
   // A reused answer was paid for by the run that made it.
@@ -867,7 +885,7 @@ export async function runCheck(options: CheckOptions, deps: CheckDeps = {}): Pro
     await quietly(() => remember(store, o.key as string, { result, runId: id, commit: head }), undefined);
   }
   if (status === 'completed' && !skipped) {
-    await quietly(() => recordVerified(store, { commit: head, policyState, runId: id, at: createdAt }), undefined);
+    await quietly(() => recordVerified(store, { commit: head, policyState, runId: id, at: createdAt, engine, reader: readerIdentityNow }), undefined);
   }
   return { ...run, digest: digestOf(run) };
 }

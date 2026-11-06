@@ -104,8 +104,9 @@ export const fakePraesidia: Connector = {
         facets: {
           subject: 'support chats',
           action: 'keep',
-          constraint: { name: 'retention', op: '<=', value: String(s.dataRetentionDays), unit: 'days' },
+          constraint: { name: 'retention', op: '==', value: String(s.dataRetentionDays), unit: 'days' },
         },
+        obligation: { statement: 'configuration', interpretation: 'configured-value', tenant: null, resource: null, applicability: 'stated', exceptions: [] },
       });
     }
     if (s.requireApproval) {

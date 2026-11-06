@@ -1,0 +1,69 @@
+# Customer workflow template: runs YOUR accepted promises against each pull request.
+# Copy to .github/workflows/jurator.yml. This is not the workflow that tests Jurator itself.
+#
+# Placeholders to replace before use:
+#   <PIN-SHA>        full commit SHA of each action (pin by SHA, keep the version in the trailing comment)
+#   <INSTALL-STEP>   how your team installs the jurator CLI (the package is not published by this repo)
+# Version note: written against the CLI flags in src/cli/commands/check.ts and report.ts at this repo revision.
+name: Jurator promise check
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@<PIN-SHA> # vX.Y.Z
+        with:
+          fetch-depth: 0 # --diff needs the base commit
+      - uses: actions/setup-node@<PIN-SHA> # vX.Y.Z
+        with:
+          node-version: 22
+      - name: Install jurator
+        run: <INSTALL-STEP>
+      # Rules run without AI. Without a model key, promises with no rule are not read.
+      # check exits 1 when a promise is broken in block mode: that fails the job after the report steps below.
+      - name: Check promises touched by this PR
+        id: check
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: jurator check --diff "origin/$BASE_REF" --head HEAD --no-ai --md > jurator-check.md
+        continue-on-error: true
+      - name: Export report (HTML) and code-scanning file (SARIF)
+        if: always()
+        run: |
+          jurator report --out jurator-report.html
+          jurator report --format sarif --out jurator.sarif
+      - uses: actions/upload-artifact@<PIN-SHA> # vX.Y.Z
+        if: always()
+        with:
+          name: jurator-report
+          path: |
+            jurator-check.md
+            jurator-report.html
+            jurator.sarif
+      - name: Fail when a promise is broken
+        if: steps.check.outcome == 'failure'
+        run: exit 1
+
+  # Optional. Needs GitHub code scanning (public repo or GitHub Advanced Security).
+  # Delete this job to skip it. Only this job gets security-events: write.
+  upload-sarif:
+    needs: check
+    if: always() && needs.check.result != 'skipped'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/download-artifact@<PIN-SHA> # vX.Y.Z
+        with:
+          name: jurator-report
+      - uses: github/codeql-action/upload-sarif@<PIN-SHA> # vX.Y.Z
+        with:
+          sarif_file: jurator.sarif
+          category: jurator

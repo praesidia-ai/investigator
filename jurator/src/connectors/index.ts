@@ -75,6 +75,8 @@ export const praesidiaPolicySchema = z.looseObject({
   name: z.string().optional(),
   version: z.union([z.number(), z.string()]).optional(),
   dataRetentionDays: z.number().int().positive().optional(),
+  /** What dataRetentionDays means. Absent: the export does not say, and the program does not guess. */
+  dataRetentionMeaning: z.enum(['configured-value', 'declared-maximum']).optional(),
   allowedTools: z.array(z.string().min(1)).optional(),
   requireApproval: z.boolean().optional(),
   blockPii: z.boolean().optional(),
@@ -164,12 +166,19 @@ export const praesidiaConnector: Connector = {
         ...(line !== undefined ? { line } : {}),
       };
     };
-    // Typed facets come from the settings themselves (no AI), so src/policy/compare.ts can set them beside the
-    // facets the compiler wrote for text policies: retention here is "keep <= N days", like "deleted after N days".
+    // Typed facets come from the settings themselves (no AI). A retention number is a configured value, a declared
+    // maximum or unresolved, as the export's `dataRetentionMeaning` says; it is never silently made a "<= N" limit.
     if (policy.dataRetentionDays !== undefined) {
       const n = String(policy.dataRetentionDays);
+      const meaning = policy.dataRetentionMeaning;
+      const wording =
+        meaning === 'configured-value'
+          ? `Data retention is configured to ${n} days.`
+          : meaning === 'declared-maximum'
+            ? `Data is kept for at most ${n} days.`
+            : `Data retention is set to ${n} days; the export does not say what that means.`;
       drafts.push({
-        wording: `Data is kept for at most ${n} days.`,
+        wording,
         quote: quote('/dataRetentionDays', policy.dataRetentionDays, 'dataRetentionDays'),
         kind: 'must',
         checkable: 'code',
@@ -179,7 +188,15 @@ export const praesidiaConnector: Connector = {
         facets: {
           subject: retentionSubject(policy),
           action: 'keep',
-          constraint: { name: 'retention', op: '<=', value: n, unit: 'days' },
+          constraint: { name: 'retention', op: meaning === 'declared-maximum' ? '<=' : '==', value: n, unit: 'days' },
+        },
+        obligation: {
+          statement: 'configuration',
+          interpretation: meaning ?? 'unresolved',
+          tenant: null,
+          resource: null,
+          applicability: 'stated',
+          exceptions: [],
         },
       });
     }

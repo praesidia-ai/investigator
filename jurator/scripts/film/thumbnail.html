@@ -1,0 +1,55 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Thumbnail</title>
+<!-- YouTube thumbnail, 1280x720. film.mjs renders it at 2x and scales it down. Strings come from the Corvane take. -->
+<style>
+  :root { --term: #0f1419; --tx: #e2e8f0; --muted: #94a3b8; --red: #f43f5e; --orange: linear-gradient(135deg, #f7931e, #ef5a3c);
+    --mono: "SF Mono", Menlo, Monaco, monospace; --sans: -apple-system, "SF Pro Display", "Helvetica Neue", Arial, sans-serif; }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1280px; height: 720px; overflow: hidden; background: #0b0f14; color: #fff; font-family: var(--sans); }
+  .bg { position: absolute; inset: 0; background:
+    radial-gradient(760px 520px at 88% 8%, rgba(247,147,30,.30), transparent 62%),
+    radial-gradient(620px 460px at 4% 108%, rgba(239,90,60,.22), transparent 62%),
+    linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 40px 40px,
+    linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 40px 40px; }
+  .brand { position: absolute; top: 44px; left: 60px; display: flex; align-items: center; gap: 16px; font: 800 34px var(--sans); letter-spacing: .05em; }
+  .mark { width: 48px; height: 48px; border-radius: 50%; flex: none;
+    background: radial-gradient(circle, #f39613 0 39.5%, #fff 40.5% 63.5%, transparent 64.5%), linear-gradient(135deg, #fb8c0a, #f23a2e);
+    box-shadow: 0 0 34px rgba(242,58,46,.55); }
+  .grad { background: var(--orange); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  h1 { position: absolute; left: 56px; top: 138px; font: 900 98px/0.96 var(--sans); letter-spacing: -.045em; }
+  h1 .hit { display: inline-block; background: linear-gradient(135deg, #ff7a1a, #f43f3e); -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 6px 26px rgba(244,63,62,.45)); }
+  .sub { position: absolute; left: 60px; top: 476px; max-width: 600px; font: 600 30px/1.25 var(--sans); color: #cbd5e1; letter-spacing: -.01em; }
+  .sub b { color: #fff; }
+  .chips { position: absolute; left: 60px; bottom: 50px; display: flex; gap: 12px; }
+  .chips i { font: 700 22px var(--sans); font-style: normal; padding: 11px 20px; border-radius: 999px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.18); }
+  .chips i.meta { background: #fff; color: #0b0f14; }
+  .term { position: absolute; right: -46px; top: 140px; width: 548px; border-radius: 18px; background: var(--term); border: 1px solid rgba(255,255,255,.12);
+    box-shadow: 0 40px 90px -30px rgba(0,0,0,.9), 0 0 0 6px rgba(244,63,94,.10); transform: rotate(-3.5deg); overflow: hidden; }
+  .bar { display: flex; gap: 8px; align-items: center; padding: 14px 18px; background: #1a2029; font: 600 16px var(--mono); color: var(--muted); }
+  .bar s { width: 12px; height: 12px; border-radius: 50%; background: #334155; text-decoration: none; }
+  .bar span { margin-left: 10px; }
+  pre { padding: 22px 24px 26px; font: 500 19px/1.55 var(--mono); color: var(--tx); white-space: pre-wrap; }
+  .p { color: var(--muted); } .r { color: var(--red); font-weight: 800; } .y { color: #fbbf24; } .q { color: #94a3b8; }
+  .hl { background: rgba(244,63,94,.22); color: #fecdd3; border-radius: 4px; padding: 0 3px; }
+  .stamp { position: absolute; right: 64px; top: 478px; transform: rotate(-9deg); font: 900 54px var(--sans); letter-spacing: .06em; color: #fff;
+    background: linear-gradient(135deg, #ff6a1a, #e11d48); padding: 8px 26px 10px; border-radius: 14px; box-shadow: 0 18px 44px -12px rgba(225,29,72,.8); }
+</style></head>
+<body>
+  <div class="bg"></div>
+  <div class="brand"><i class="mark"></i><span>PRAESIDIA<span class="grad">.AI</span></span></div>
+  <h1>AI agent<br>broke policy.<br><span class="hit">Push blocked.</span></h1>
+  <div class="sub">Policies become rules. <b>Proof, no AI at check time.</b></div>
+  <div class="chips"><i>Jurator</i><i>Investigator</i><i class="meta">Built on Meta Muse</i></div>
+  <div class="term">
+    <div class="bar"><s></s><s></s><s></s><span>Muse Code · jurator hook</span></div>
+<pre><span class="p">$</span> git push origin agent/refund-autopilot
+<span class="r">permissionDecision: deny</span>
+
+<span class="r">✗ ai-agents.11 BROKEN</span>
+<span class="q">Coding agents must not remove</span>
+<span class="q">approval steps.</span>
+<span class="y">refunds.py:9</span> <span class="hl">approved_by="penny-auto"</span></pre>
+  </div>
+  <div class="stamp">DENIED</div>
+</body></html>

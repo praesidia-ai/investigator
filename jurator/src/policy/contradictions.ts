@@ -33,7 +33,10 @@ export async function findContradictions(
   const stillValid = (c: Contradiction) => c.promiseIds.every((id) => activeIds.has(id));
 
   const compared = compareAll(active);
-  const undecided = new Set(compared.undecided.map((pair) => setKey(pair)));
+  // Pairs only a person may decide never go to the model, and a model cannot raise a conflict for them.
+  const personKeys = new Set(compared.needsPerson.map((pair) => setKey(pair)));
+  const forModel = compared.undecided.filter((pair) => !personKeys.has(setKey(pair)));
+  const undecided = new Set(forModel.map((pair) => setKey(pair)));
   /** True when at least one pair inside the set is one the program could not decide. */
   const needsModel = (ids: readonly string[]) => {
     for (let i = 0; i < ids.length; i += 1) {
@@ -45,32 +48,32 @@ export async function findContradictions(
   const byKey = new Map(existing.map((c) => [setKey(c.promiseIds), c]));
   let next = existing.reduce((max, c) => Math.max(max, contradictionNumber(c.id)), 0) + 1;
   const out = new Map<string, Contradiction>();
-  const add = (ids: string[], example: string, foundBy: Contradiction['foundBy']) => {
+  const add = (ids: string[], example: string, foundBy: Contradiction['foundBy'], kind?: Contradiction['kind']) => {
     const key = setKey(ids);
     if (out.has(key)) return;
     const prev = byKey.get(key);
     if (prev) {
-      out.set(key, { ...prev, foundBy, example: prev.status === 'open' ? example : prev.example });
+      out.set(key, { ...prev, foundBy, example: prev.status === 'open' ? example : prev.example, ...(kind ? { kind } : {}) });
     } else {
-      out.set(key, { id: `C-${next}`, promiseIds: [...ids].sort(), example, status: 'open', foundBy });
+      out.set(key, { id: `C-${next}`, promiseIds: [...ids].sort(), example, status: 'open', foundBy, ...(kind ? { kind } : {}) });
       next += 1;
     }
   };
 
   // 1. The program: same subject and action, constraints that cannot both hold.
-  for (const c of compared.conflicts) add([...c.promiseIds], c.example, 'structured');
+  for (const c of compared.conflicts) add([...c.promiseIds], c.example, 'structured', c.kind);
 
   // 2. The model, only for the pairs the program could not decide.
   const usage: ModelUsage[] = [];
   let modelChecked = false;
-  if (model && compared.undecided.length) {
-    const involved = new Set(compared.undecided.flat());
+  if (model && forModel.length) {
+    const involved = new Set(forModel.flat());
     const result = await model.json({
       task: 'contradictions',
       instructions: CONTRADICTION_INSTRUCTIONS,
       input: contradictionInput(
         active.filter((p) => involved.has(p.id)),
-        compared.undecided,
+        forModel,
       ),
       schemaName: 'promise_conflicts',
       schema: contradictionOutputSchema,

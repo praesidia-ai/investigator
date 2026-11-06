@@ -15,6 +15,9 @@ import {
   nextMutants,
   readMutants,
   testMutants,
+  saveAssessment,
+  readBundle,
+  verifyBundle,
   writeMutants,
   mapPool,
   nextInfeasible,
@@ -594,12 +597,15 @@ async function propose(ctx: CommandContext, deps: RuleCommandDeps, args: Args): 
   }
   // "No rule possible" is an answer, not a failure of the run.
   live.finish({ keep: 'none', ok: true });
+  const byPromiseId = new Map(promises.map((x) => [x.id, x] as const));
   const results: Array<Record<string, unknown>> = [];
   let usd = summaryUsd;
   let written = 0;
   let found = 0;
   let closed = 0;
   const evadable: string[] = [];
+  const limitedWarnings: string[] = [];
+  const assuranceBy = new Map<string, { coverage: 'limited-detector'; openCounterexamples: number; warning: string }>();
   const retry: string[] = [];
   const brokenNow: Array<{ id: string; at: string | null }> = [];
   const notAsked: string[] = [];
@@ -618,6 +624,14 @@ async function propose(ctx: CommandContext, deps: RuleCommandDeps, args: Args): 
         found += red.closed.length + red.open.length;
         closed += red.closed.length;
         if (red.verdict === 'still-evadable') evadable.push(rule.id);
+        if (red.open.length > 0) {
+          const shapes = red.open.slice(0, 5).map((e) => `${e.edit.path}: ${e.why}`);
+          const warning =
+            `${rule.id} is a limited detector: it still misses ${red.open.length} known shape${red.open.length === 1 ? '' : 's'} ` +
+            `(${shapes.join('; ')}${red.open.length > 5 ? '; ...' : ''}). A HOLDS from it is not an unqualified pass.`;
+          assuranceBy.set(p.id, { coverage: 'limited-detector', openCounterexamples: red.open.length, warning });
+          if (accept) limitedWarnings.push(`Accepted with open evasions: ${warning}`);
+        }
       }
       const broken = res.brokenNow;
       if (broken) {
@@ -630,6 +644,7 @@ async function propose(ctx: CommandContext, deps: RuleCommandDeps, args: Args): 
         rule,
         ...(broken ? { brokenNow: broken } : {}),
         ...(red ? { redteam: red.redteam, hardening: hardeningJson(red) } : {}),
+        ...(assuranceBy.has(p.id) ? { assurance: assuranceBy.get(p.id) } : {}),
       });
       if (!json && !nice) {
         const repaired = red?.repaired ? ', repaired after the red team' : '';
@@ -663,7 +678,22 @@ async function propose(ctx: CommandContext, deps: RuleCommandDeps, args: Args): 
   if (redteams.size > 0) {
     // FU-1: confirmed evasions stay with the rule as extra mutants that `rule test` re-runs.
     const mutants = deps.mutants ?? fileMutants;
-    await mutants.write(store.dir, nextMutants(await mutants.read(store.dir), [...redteams.values()], head, rules));
+    const nextFile = nextMutants(await mutants.read(store.dir), [...redteams.values()], head, rules);
+    await mutants.write(store.dir, nextFile);
+    // The portable, committed copy: the same evasions as an assessment bundle per red-teamed rule.
+    for (const r of redteams.values()) {
+      const kept = rules.find((x) => x.id === r.rule.id);
+      const pr = byPromiseId.get(r.promiseId);
+      if (!kept || !pr) continue;
+      await saveAssessment(store.dir, repo, {
+        rule: kept,
+        promise: pr,
+        commit: head,
+        mutants: nextFile.rules[kept.id]?.evasions ?? [],
+        adjudication: { by: 'model', model: REDTEAM_JUDGE_MODEL, at: ctx.now().toISOString(), independent: false },
+        createdAt: ctx.now().toISOString(),
+      });
+    }
   }
   if (accept && written > 0) await recordRuleBindings({ store, repo, commit: head, promises, rules }); // WP-B: where each promise lives
   // Remember what the model judged infeasible (so hints stop suggesting it); a promise that now has a rule leaves.
@@ -715,6 +745,7 @@ async function propose(ctx: CommandContext, deps: RuleCommandDeps, args: Args): 
     );
     return 0;
   }
+  for (const w of limitedWarnings) ctx.out(ctx.style.yellow(w));
   const nextHint = (): string | null => {
     if (stop) return null; // the continue command is the next step
     if (written > 0 && !accept) return `review ${BRAND.folder}/rules.json, then ${BRAND.command} rule accept --all`;
@@ -801,10 +832,24 @@ async function test(ctx: CommandContext, deps: RuleCommandDeps, args: Args): Pro
     const constraint = promise ? numericConstraint(promise) : null;
     const res = runRule(rule, await loadRuleFiles(repo, commit, rule.globs, cache), commit, { constraint });
     results.push(res);
-    const evasions = stored.rules[rule.id]?.evasions ?? [];
+    const bundle = await readBundle(store.dir, rule.id);
+    // A trusted bundle wins; else the legacy local file (still read, never deleted).
+    const evasions = bundle && verifyBundle(bundle).ok ? [...bundle.mutants] : (stored.rules[rule.id]?.evasions ?? []);
     // Only on code where the rule passes: on a broken commit the promise is already reported broken.
     if (evasions.length > 0 && res.outcome === 'pass') {
       mutants.set(rule.id, await testMutants(rule, promise, evasions, commit, (g) => loadRuleFiles(repo, commit, g, cache)));
+    }
+    // Persist the portable bundle (imports the legacy file when no bundle exists); unchanged bundles are left alone.
+    if (promise && res.outcome === 'pass' && (evasions.length > 0 || bundle)) {
+      const good = bundle && verifyBundle(bundle).ok ? bundle : null;
+      await saveAssessment(store.dir, repo, {
+        rule,
+        promise,
+        commit,
+        mutants: evasions,
+        ...(good ? { adjudication: good.adjudication, harmlessControls: good.harmlessControls } : {}),
+        createdAt: ctx.now().toISOString(),
+      });
     }
   }
   const count = (o: RuleRunResult['outcome']): number => results.filter((r) => r.outcome === o).length;

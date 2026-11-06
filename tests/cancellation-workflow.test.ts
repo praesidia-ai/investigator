@@ -506,3 +506,22 @@ describe('model-selected cancellation investigations', () => {
     }
   });
 });
+
+describe('show command', () => {
+  it('presents a saved scripted case without upgrading its mode', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'cancel-show-'));
+    try {
+      await writeCancellationBundle(join(dir, 'case'), report);
+      const out: string[] = [];
+      const io = { stdout: (t: string) => void out.push(t), stderr: () => undefined };
+      expect(await runCli(['show', join(dir, 'case')], { FORCE_COLOR: '0' }, io)).toBe(0);
+      const text = out.join('');
+      expect(text).toContain(`mode: ${report.before.provider.mode}`);
+      expect(text).toContain('records consistent');
+      expect(text).toContain('Verdict BEFORE');
+      expect(text.split('\n').length).toBeLessThanOrEqual(75);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+});

@@ -3,6 +3,7 @@
   "version": 7,
   "enforcementMode": "enforce",
   "dataRetentionDays": 90,
+  "dataRetentionMeaning": "configured-value",
   "allowedTools": ["search_notes", "export_notes"],
   "requireApproval": true,
   "blockPii": true

@@ -2,6 +2,8 @@
 
 ## 0.1.0 — unreleased
 
+- Added the P1 Jurator bridge: versioned `praesidia.investigation-request/v1` and `-result/v1` JSON (`src/interop/`, fixtures in `schemas/interop/v1/`), a profile registry, `interop-run`, `verify-interop`, `interop-profiles` and `npm run smoke:interop` (clean packed-consumer proof).
+
 Initial standalone development version. Public GitHub source publication is planned, with the
 destination still pending. The package's `private: true` protects npm registry publication; this
 entry is not a release announcement.

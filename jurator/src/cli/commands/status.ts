@@ -175,7 +175,8 @@ const command: Command = {
       const where = `${last.snapshot.branch ?? 'detached'}@${last.snapshot.commit.slice(0, 7)}${last.snapshot.dirty ? ' (dirty)' : ''}`;
       const sum = last.summary;
       const broken = sum.broken + sum.looksBroken;
-      const verdicts = `${sum.holds} hold, ${sum.broken} broken, ${sum.looksKept} look kept, ${sum.looksBroken} look broken, ${sum.cantTell} can't tell`;
+      const limited = last.results.filter((r) => r.verdict === 'holds' && (r.assurance?.openCounterexamples ?? 0) > 0).length;
+      const verdicts = `${sum.holds - limited} hold${limited > 0 ? `, ${limited} hold with known misses (limited)` : ''}, ${sum.broken} broken, ${sum.looksKept} look kept, ${sum.looksBroken} look broken, ${sum.cantTell} can't tell`;
       ctx.out(`Last check: ${last.id} at ${last.createdAt} on ${where}: ${last.status}; ${broken > 0 ? s.red(verdicts) : verdicts}`);
     } else {
       ctx.out(`Last check: ${s.dim('none yet')}`);

@@ -63,6 +63,7 @@ describe('jurator mcp (real store, real git, real check)', () => {
     const r = await client.callTool('promises_for_change', { files: ['src/routes/export.ts'] });
     expect(r.isError).toBe(false);
     expect((r.structuredContent?.promises as Array<{ id: string }>).map((p) => p.id)).toEqual([
+      'praesidia.01',
       'privacy.02',
       'security.01',
       'security.02',

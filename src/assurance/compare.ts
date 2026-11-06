@@ -276,3 +276,23 @@ export function compareAssurance(input: unknown): ChangeInvestigation {
     'Change investigation',
   );
 }
+
+export type CaseReuse = 'needs-new-test' | 'reusable' | 'unresolved';
+
+/**
+ * Per-case reading of a comparison, for imported tool/deployment revisions: a changed mapped
+ * dependency needs a new test; recorded-unchanged dependencies are reusable (applicability only,
+ * never a current verdict); unresolved coverage/mapping stays visible and is never reusable.
+ */
+export function caseReuse(investigation: ChangeInvestigation): Record<string, CaseReuse> {
+  return Object.fromEntries(
+    investigation.checks.map((check) => [
+      check.id,
+      check.validity === 'unknown'
+        ? 'unresolved'
+        : check.validity === 'stale'
+          ? 'needs-new-test'
+          : 'reusable',
+    ]),
+  );
+}

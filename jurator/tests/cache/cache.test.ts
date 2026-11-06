@@ -13,6 +13,8 @@ import {
   remember,
   ruleDigest,
   withEffectiveScope,
+  EVALUATOR_VERSION,
+  engineIdentity,
 } from '../../src/cache/index.js';
 import type { Binding, CheckResult } from '../../src/contracts.js';
 import { FakeRepo, FakeStore, FILES, HEAD, BASE, promise, rule } from '../check/fakes.js';
@@ -90,8 +92,9 @@ describe('cacheKeyFor', () => {
     let quote: string | null = 'export const CHAT_TTL_DAYS = 30;';
     const reanchor = async () => (quote === null ? null : { startLine: 1, endLine: 1, quote, status: 'same' as const });
     const k1 = await cacheKeyFor(p, [], [binding], repo, HEAD, ['src/agent/chats.ts', 'src/log.ts'], reanchor);
-    // Other files in scope do not matter once the promise is bound.
-    expect(await cacheKeyFor(p, [], [binding], repo, HEAD, ['src/agent/chats.ts'], reanchor)).toBe(k1);
+    // Corrected (P0 identity): the AI read also sees the other files in scope, so a new scope file is a new effect path.
+    expect(await cacheKeyFor(p, [], [binding], repo, HEAD, ['src/agent/chats.ts'], reanchor)).not.toBe(k1);
+    expect(await cacheKeyFor(p, [], [binding], repo, HEAD, ['src/agent/chats.ts', 'src/log.ts'], reanchor)).toBe(k1);
     quote = 'export const CHAT_TTL_DAYS = 90;';
     expect(await cacheKeyFor(p, [], [binding], repo, HEAD, ['src/agent/chats.ts'], reanchor)).not.toBe(k1);
     quote = null; // lost
@@ -152,5 +155,47 @@ describe('local cache files', () => {
     const pair = { commit: HEAD, policyState: 'c'.repeat(64), runId: 'run-2', at: '2026-11-04T04:00:00.000Z' };
     await recordVerified(store, pair);
     expect(await lastVerified(store)).toEqual(pair);
+  });
+});
+
+describe('cache identity v2', () => {
+  const p = promise('privacy.01', { scope: ['src/agent/**'] });
+  const bound: Binding = {
+    id: 'B-privacy.01-1', promiseId: 'privacy.01', path: 'src/agent/chats.ts', symbol: 'CHAT_TTL_DAYS', kind: 'constant',
+    startLine: 1, endLine: 1, quote: 'export const CHAT_TTL_DAYS = 30;', quoteSha256: '0'.repeat(64), anchoredAt: HEAD,
+    expected: { op: '<=', value: '30', unit: 'days' }, foundBy: 'rule',
+  };
+  const reanchor = async () => ({ startLine: 1, endLine: 1, quote: 'export const CHAT_TTL_DAYS = 30;', status: 'same' as const });
+  const SCOPE = ['src/agent/chats.ts', 'src/agent/helper.ts'];
+  const withFiles = (extra: Record<string, string>) => new FakeRepo({ [HEAD]: { ...FILES, ...extra } });
+  const key = (repo: FakeRepo, scope = SCOPE, identity = { reader: { id: 'm1', effort: 'low' }, codeScope: ['src/**'] }) =>
+    cacheKeyFor(p, [], [bound], repo, HEAD, scope, reanchor, identity);
+  const base = { 'src/agent/helper.ts': "export const x = 1;\n" };
+
+  it('AI read: model id/effort, dependency change and new scope file invalidate; unrelated file reuses', async () => {
+    const k = await key(withFiles(base));
+    expect(await key(withFiles({ ...base, 'docs/other.md': 'x' }))).toBe(k); // unrelated
+    expect(await key(withFiles(base), SCOPE, { reader: { id: 'm2', effort: 'low' }, codeScope: ['src/**'] })).not.toBe(k);
+    expect(await key(withFiles(base), SCOPE, { reader: { id: 'm1', effort: 'high' }, codeScope: ['src/**'] })).not.toBe(k);
+    expect(await key(withFiles(base), SCOPE, { reader: { id: 'm1', effort: 'low' }, codeScope: ['lib/**'] })).not.toBe(k);
+    expect(await key(withFiles({ 'src/agent/helper.ts': "export const x = 2;\n" }))).not.toBe(k); // imported code changed
+    expect(await key(withFiles({ ...base, 'src/agent/new.ts': 'y' }), [...SCOPE, 'src/agent/new.ts'])).not.toBe(k); // new effect path
+  });
+
+  it('analyzer version and evaluator version change the key and the fast-path identity', async () => {
+    const r = rule('R-privacy.01', 'privacy.01', ['src/agent/**']);
+    const sem = { ...r, mode: 'semantic' as const, semantic: { adapter: 'ts-express', adapterVersion: '1', control: 'guard', config: {} } };
+    const repo = withFiles(base);
+    const k1 = await cacheKeyFor(p, [sem], [], repo, HEAD, SCOPE);
+    const k2 = await cacheKeyFor(p, [{ ...sem, semantic: { ...sem.semantic, adapterVersion: '2' } }], [], repo, HEAD, SCOPE);
+    expect(k2).not.toBe(k1);
+    expect(engineIdentity([sem], ['src/**'])).not.toBe(engineIdentity([{ ...sem, semantic: { ...sem.semantic, adapterVersion: '2' } }], ['src/**']));
+    expect(EVALUATOR_VERSION).toBeTruthy();
+  });
+
+  it('digests stay the same for promises without obligation and rules without semantic', () => {
+    const r = rule('R-privacy.01', 'privacy.01', ['src/**']);
+    expect(ruleDigest({ ...r, semantic: undefined })).toBe(ruleDigest(r));
+    expect(promiseDigest({ ...p, obligation: undefined })).toBe(promiseDigest(p));
   });
 });

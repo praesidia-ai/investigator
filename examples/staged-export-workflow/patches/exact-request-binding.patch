@@ -1,0 +1,12 @@
+--- a/src/access.ts
++++ b/src/access.ts
+@@ -17,7 +17,8 @@
+     grant.approverId === 'reviewer:reference' &&
+     grant.approverId !== req.body.actorId &&
+     grant.expiresAt > state.now &&
+-    !grant.used;
++    !grant.used &&
++    grant.requestDigest === requestDigest(req.body);
+   if (!ok) throw new AccessDenied(`approval required for ${tenant}/${resource}`);
+   grant.used = true;
+ }

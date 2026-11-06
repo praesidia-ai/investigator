@@ -302,7 +302,7 @@ step "Find the policies" "Jurator finds docs/privacy.md, docs/security.md and th
 step "Compile policies into promises" "Each promise is one short sentence with the exact policy quote; the program finds every quote word for word." 0 \
   jurator compile --accept ${SCRIPTED[@]+"${SCRIPTED[@]}"}
 
-step "Show contradictions" "Privacy says chats are deleted after 30 days; the Praesidia agent policy keeps data for 90 days." any \
+step "Show contradictions" "Privacy says chats are deleted after 30 days; the Praesidia agent policy is configured to keep data 90 days (a configuration violation)." any \
   jurator conflicts
 
 step "Write rules (the model writes, the program proves)" "Each rule must pass on main and is proven able to fail before it is saved." 0 \

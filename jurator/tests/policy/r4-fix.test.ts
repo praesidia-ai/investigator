@@ -47,6 +47,7 @@ describe('typed actions are normalised before the no-AI comparison', () => {
     const r = comparePromises(never, thirty);
     expect(r).toEqual({
       verdict: 'conflict',
+      kind: 'incompatible-requirements',
       basis: 'never with at most 30 days',
       example: 'documents.02 says documents are never kept; documents.05 allows keeping them for at most 30 days.',
     });

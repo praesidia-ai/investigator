@@ -2,7 +2,7 @@
 
 `acme-notes/` is the demo app: a small TypeScript notes app with a privacy policy (`docs/privacy.md`), a security
 policy (`docs/security.md`) and a recorded agent-settings export (`policies/praesidia-support-agent.json`, whose
-`dataRetentionDays: 90` contradicts privacy's 30 days). `acme-notes/branches/` holds the two planted breaks as
+`dataRetentionDays: 90` is set against privacy's 30 days: a configuration violation). `acme-notes/branches/` holds the two planted breaks as
 `git format-patch` files.
 
 ```sh

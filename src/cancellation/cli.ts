@@ -9,6 +9,7 @@ import {
   writeCancellationTrials,
 } from './evaluate.js';
 import { verifyCancellationCase } from './report.js';
+import { showCancellationCase } from './show.js';
 import { cancellationFixtureModeSchema } from './target.js';
 import { runCancellationWorkflow, writeCancellationBundle } from './workflow.js';
 
@@ -30,8 +31,19 @@ export async function runCancellationCli(options: {
   signal?: AbortSignal;
 }): Promise<number | undefined> {
   const { command, positionals, values, io } = options;
-  if (!['cancellation-demo', 'cancellation-trials', 'verify-cancellation'].includes(command))
+  if (
+    !['cancellation-demo', 'cancellation-trials', 'verify-cancellation', 'show'].includes(command)
+  )
     return undefined;
+  if (command === 'show') {
+    if (positionals.length !== 2 || Object.keys(values).length)
+      throw new InvestigatorError('INVALID_ARGUMENTS', 'Use: show <case-dir-or-case.json>.');
+    const color = options.env.FORCE_COLOR
+      ? options.env.FORCE_COLOR !== '0'
+      : !!process.stdout.isTTY;
+    io.stdout(await showCancellationCase(positionals[1]!, color));
+    return 0;
+  }
   if (
     values.against ||
     values.format ||

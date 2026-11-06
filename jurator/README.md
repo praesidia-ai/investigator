@@ -30,7 +30,7 @@ In your repo, or in a folder that holds several repos:
 ```sh
 jurator init                       # find your policies, write .jurator/config.json
 jurator compile --accept           # policies -> numbered promises with exact quotes
-jurator conflicts                  # promises that contradict each other (30 days vs 90 days)
+jurator conflicts                  # promises that contradict each other (a requirement vs a configured value, or two requirements that cannot both hold)
 jurator rule propose --all         # the model writes rules, the program proves each one can fail
 jurator rule accept --all          # after you read .jurator/rules.json
 jurator bind --all                 # where each promise lives in the code
@@ -176,7 +176,7 @@ jurator conflicts --rule <C-n> --as real|not-a-conflict --why "<reason>" [--by <
 
 | Argument | What it does |
 |---|---|
-| (none) | List the contradictions found so far. Typed fields are compared with no AI (30 days vs 90 days). |
+| (none) | List the contradictions found so far. Typed fields are compared with no AI: a requirement against a configured value (30 days vs a setting of 90) is a configuration violation; two limits that can both hold are compatible. |
 | `--find` | Ask the model to look for contradictions again. |
 | `--rule <C-n>` | The contradiction to decide, e.g. `C-1`. |
 | `--as real\|not-a-conflict` | Your decision. |
