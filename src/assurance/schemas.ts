@@ -1,12 +1,10 @@
 import { z } from 'zod';
+import {
+  identifierSchema as identifier,
+  shortTextSchema as text,
+  digestSchema as digest,
+} from '../core/schemas.js';
 
-const identifier = z
-  .string()
-  .min(1)
-  .max(160)
-  .regex(/^[a-zA-Z0-9][a-zA-Z0-9._:-]*$/);
-const text = z.string().min(1).max(2048);
-const digest = z.string().regex(/^[a-f0-9]{64}$/);
 export const assuranceScopeSchema = z
   .object({
     tenantRef: text,

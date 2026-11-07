@@ -4,7 +4,7 @@ import type { EvidenceStore } from '../core/evidence-store.js';
 import { InvestigatorError } from '../core/errors.js';
 import { jsonDigest, type JsonObject, type JsonValue } from '../core/json.js';
 import { parseInput, parseJson } from '../core/parse.js';
-import { jsonValueSchema, locatorSchema } from '../core/schemas.js';
+import { jsonValueSchema, locatorSchema, modelUsageSchema } from '../core/schemas.js';
 import { verifyClientSystemSnapshot } from '../context/project.js';
 import { queryClientContext } from '../context/query.js';
 import type { ClientSystemSnapshot } from '../context/schemas.js';
@@ -212,12 +212,7 @@ export async function investigateEvidenceGap(options: {
         'Evidence planning did not produce a complete response.',
       );
     if (completion.usage) {
-      const usage = z
-        .object({
-          inputTokens: z.number().int().nonnegative().safe(),
-          outputTokens: z.number().int().nonnegative().safe(),
-        })
-        .parse(completion.usage);
+      const usage = modelUsageSchema.parse(completion.usage);
       knownInputTokens += usage.inputTokens;
       knownOutputTokens += usage.outputTokens;
       chargedOutput += usage.outputTokens;

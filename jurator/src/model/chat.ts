@@ -8,7 +8,7 @@ import { z } from 'zod';
 import type { ModelUsage } from '../contracts.js';
 import { JuratorError } from '../util/errors.js';
 import { BUDGET_ERROR } from './budget.js';
-import { formatUsd, priceFor, usdFor } from './cost.js';
+import { formatUsd, liveUsage, priceFor, usdFor } from './cost.js';
 import type { JsonValue } from './meta/json-types.js';
 import { createMetaProvider } from './meta/meta-config.js';
 import type { ModelInput, ModelProvider, ModelToolCall, ReasoningEffort, ToolDefinition } from './meta/model-provider.js';
@@ -144,14 +144,7 @@ export class LiveChat implements ChatModel {
           parallelToolCalls: request.tools.length > 0,
           ...(request.maxOutputTokens !== undefined ? { maxOutputTokens: request.maxOutputTokens } : {}),
         });
-        const tokens = done.usage ?? { inputTokens: 0, outputTokens: 0 };
-        const usage: ModelUsage = {
-          id: this.id,
-          mode: 'live',
-          inputTokens: tokens.inputTokens,
-          outputTokens: tokens.outputTokens,
-          usd: usdFor(this.id, tokens),
-        };
+        const usage = liveUsage(this.id, done.usage);
         this.#budget.record(usage.usd);
         return { text: done.text, toolCalls: done.toolCalls, state: done.state, finishReason: done.finishReason ?? 'completed', usage };
       } catch (error) {

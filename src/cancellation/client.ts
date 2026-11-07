@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { createClientSystemSnapshot } from '../context/project.js';
 import type { ClientContextInput } from '../context/schemas.js';
 import { EvidenceStore } from '../core/evidence-store.js';
-import { sha256, type JsonObject, type JsonValue } from '../core/json.js';
+import { oneOfToAnyOf, sha256, type JsonObject } from '../core/json.js';
 import { boundedJsonValueSchema } from '../core/bounded-json.js';
 import { citationSchema, type EvidenceArtifact } from '../core/schemas.js';
 import type { CancellationServiceSources } from './recipe.js';
@@ -190,17 +190,7 @@ export type CancellationFinding = z.infer<typeof cancellationFindingSchema>;
 
 /** Normalize only these code-owned disjoint locator branches for Meta's strict subset. */
 export function cancellationJsonSchema(schema: z.ZodType): JsonObject {
-  const normalize = (value: JsonValue): JsonValue => {
-    if (Array.isArray(value)) return value.map(normalize);
-    if (value === null || typeof value !== 'object') return value;
-    return Object.fromEntries(
-      Object.entries(value).map(([key, child]) => [
-        key === 'oneOf' ? 'anyOf' : key,
-        normalize(child),
-      ]),
-    );
-  };
-  return normalize(
+  return oneOfToAnyOf(
     boundedJsonValueSchema.parse(
       JSON.parse(JSON.stringify(z.toJSONSchema(schema, { target: 'draft-7' }))) as unknown,
     ),

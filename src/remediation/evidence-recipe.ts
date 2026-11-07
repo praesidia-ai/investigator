@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { InvestigatorError } from '../core/errors.js';
 import { jsonDigest, sha256 } from '../core/json.js';
 import { parseInput } from '../core/parse.js';
+import { EXPORT_EVIDENCE_REQUIREMENTS } from '../evidence-plans/requirements.js';
 import { decodeUtf8, readBoundedFile } from '../io/read-file.js';
 
 export const LEGACY_EVIDENCE_PRODUCER = `// This authored producer deliberately omits the approval/execution join.
@@ -54,17 +55,6 @@ export interface EvidenceGapSources {
   readonly 'instrumentation.mjs': string;
 }
 
-const COLLECTED_FIELDS = [
-  'type',
-  'executionId',
-  'workId',
-  'grantId',
-  'actorId',
-  'requestDigest',
-  'policyRevision',
-  'deploymentRevision',
-  'observedAt',
-];
 const EXCLUDED_FIELDS = ['payload', 'destination', 'customerName', 'customerEmail'];
 
 function evidenceDiff(before: string, after: string): string {
@@ -82,7 +72,7 @@ export function createEvidenceRecipeProposal(): EvidenceRecipeProposal {
     diff: evidenceDiff(LEGACY_EVIDENCE_PRODUCER, BOUND_EVIDENCE_PRODUCER),
     scope: 'isolated-authored-example',
     changesAuthorization: false,
-    collectedFields: [...COLLECTED_FIELDS],
+    collectedFields: [...EXPORT_EVIDENCE_REQUIREMENTS.collectionFields],
     excludedFields: [...EXCLUDED_FIELDS],
   };
 }

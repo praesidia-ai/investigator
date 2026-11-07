@@ -1,5 +1,6 @@
 import { writeFile } from 'node:fs/promises';
 import type { CliOutput } from '../cli.js';
+import { printRecordsConsistent } from '../io/verify-output.js';
 import { loadMcpExport } from '../context/load-mcp.js';
 import { InvestigatorError } from '../core/errors.js';
 import { parseJson } from '../core/parse.js';
@@ -118,15 +119,10 @@ export async function runAssuranceCli(options: {
     )
       verifyAssuranceDemo(input);
     else verifyAssuranceChangeReport(input);
-    const result = {
-      integrity: 'consistent-with-supplied-records',
-      authenticity: 'not-established',
-      execution: 'not-reexecuted',
-    };
-    io.stdout(
-      values.json
-        ? `${JSON.stringify(result)}\n`
-        : 'Change records consistent. Authorship not established; recorded workload not reexecuted.\n',
+    printRecordsConsistent(
+      io,
+      values.json,
+      'Change records consistent. Authorship not established; recorded workload not reexecuted.\n',
     );
     return 0;
   }

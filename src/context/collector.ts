@@ -10,7 +10,9 @@ import { parseInput, parseJson } from '../core/parse.js';
 import {
   citationSchema,
   evidenceArtifactSchema,
+  identifierSchema as identifier,
   jsonValueSchema,
+  shortTextSchema as text,
   type EvidenceArtifact,
 } from '../core/schemas.js';
 import { decodeUtf8, readBoundedFile } from '../io/read-file.js';
@@ -29,13 +31,6 @@ import {
   type SourceCapability,
   type SourceQualifiedRef,
 } from './schemas.js';
-
-const identifier = z
-  .string()
-  .min(1)
-  .max(160)
-  .regex(/^[a-zA-Z0-9][a-zA-Z0-9._:-]*$/);
-const text = z.string().min(1).max(2048);
 
 /** Relationship provenance, reused from the context contract. */
 export type RelationshipBasis = ContextAssertion['basis'];

@@ -1,4 +1,5 @@
 import type { CliOutput } from '../cli.js';
+import { printRecordsConsistent } from '../io/verify-output.js';
 import { InvestigatorError } from '../core/errors.js';
 import { parseInput, parseJson } from '../core/parse.js';
 import { decodeUtf8, readBoundedFile } from '../io/read-file.js';
@@ -70,15 +71,10 @@ export async function runCancellationCli(options: {
     )
       verifyCancellationTrials(input);
     else verifyCancellationCase(input);
-    const result = {
-      integrity: 'consistent-with-supplied-records',
-      authenticity: 'not-established',
-      execution: 'not-reexecuted',
-    };
-    io.stdout(
-      values.json
-        ? `${JSON.stringify(result)}\n`
-        : 'Cancellation records consistent. Authorship not established; observations not reexecuted.\n',
+    printRecordsConsistent(
+      io,
+      values.json,
+      'Cancellation records consistent. Authorship not established; observations not reexecuted.\n',
     );
     return 0;
   }

@@ -8,7 +8,12 @@ import { EvidenceStore } from '../core/evidence-store.js';
 import { InvestigatorError, publicError } from '../core/errors.js';
 import { jsonDigest, stableJson, type JsonValue } from '../core/json.js';
 import { parseInput, parseJson } from '../core/parse.js';
-import { citationSchema, evidenceArtifactSchema } from '../core/schemas.js';
+import {
+  citationSchema,
+  evidenceArtifactSchema,
+  modelUsageSchema,
+  providerIdentitySchema,
+} from '../core/schemas.js';
 import type { ModelInput, ModelProvider } from '../providers/model-provider.js';
 import { assessCancellationExperiments } from './assessment.js';
 import {
@@ -49,13 +54,7 @@ export const cancellationInvestigationSchema = z
     subjectRevision: digest,
     startedAt: z.iso.datetime(),
     finishedAt: z.iso.datetime(),
-    provider: z
-      .object({
-        id: z.string().min(1).max(256),
-        model: z.string().min(1).max(256),
-        mode: z.enum(['live', 'scripted']),
-      })
-      .strict(),
+    provider: providerIdentitySchema,
     context: clientSystemSnapshotSchema,
     evidence: z.array(evidenceArtifactSchema).min(4).max(16),
     captures: z.array(cancellationCaptureSchema).max(4),
@@ -395,10 +394,7 @@ export async function investigateCancellation(options: {
         );
       if (completion.usage) {
         const usage = parseInput(
-          z.object({
-            inputTokens: z.number().int().nonnegative().safe(),
-            outputTokens: z.number().int().nonnegative().safe(),
-          }),
+          modelUsageSchema,
           completion.usage,
           'INVALID_MODEL_USAGE',
           'Model usage',

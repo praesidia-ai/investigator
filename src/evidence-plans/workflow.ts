@@ -1,10 +1,11 @@
-import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadClientContext } from '../context/load.js';
 import { readLocator } from '../core/citations.js';
 import { InvestigatorError } from '../core/errors.js';
+import { writeBundle } from '../io/write-bundle.js';
 import type { ModelProvider } from '../providers/model-provider.js';
 import { ScriptedEvidenceProvider } from '../providers/scripted-evidence.js';
 import { applyEvidenceRecipe, LEGACY_EVIDENCE_PRODUCER } from '../remediation/evidence-recipe.js';
@@ -126,30 +127,20 @@ export async function writeEvidencePlanBundle(
   input: EvidencePlanReport,
 ): Promise<void> {
   const report = verifyEvidencePlanReport(input);
-  await mkdir(directory, { mode: 0o700 }).catch(() => {
-    throw new InvestigatorError(
-      'OUTPUT_UNAVAILABLE',
-      'Choose an available new evidence-plan output directory.',
-    );
-  });
-  try {
-    const files: Record<string, string> = {
-      'evidence-plan.json': `${JSON.stringify(report, null, 2)}\n`,
-      'context.json': `${JSON.stringify(report.context, null, 2)}\n`,
-      'instrumentation.diff': report.change.diff,
-      'report.html': renderEvidencePlanHtml(report),
-    };
-    for (const [name, content] of Object.entries(files))
-      await writeFile(join(directory, name), content, {
-        flag: 'wx',
-        mode: 0o600,
-        encoding: 'utf8',
-      });
-  } catch {
-    await rm(directory, { recursive: true, force: true });
-    throw new InvestigatorError(
-      'OUTPUT_UNAVAILABLE',
-      'The evidence-plan bundle could not be written.',
-    );
-  }
+  await writeBundle(
+    directory,
+    {
+      unavailable: 'Choose an available new evidence-plan output directory.',
+      failed: 'The evidence-plan bundle could not be written.',
+    },
+    () => {
+      const files: Record<string, string> = {
+        'evidence-plan.json': `${JSON.stringify(report, null, 2)}\n`,
+        'context.json': `${JSON.stringify(report.context, null, 2)}\n`,
+        'instrumentation.diff': report.change.diff,
+        'report.html': renderEvidencePlanHtml(report),
+      };
+      return files;
+    },
+  );
 }

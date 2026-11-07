@@ -15,12 +15,26 @@ export const jsonValueSchema: z.ZodType<JsonValue> = z.lazy(() =>
     z.record(z.string(), jsonValueSchema),
   ]),
 );
-const identifier = z
+export const identifierSchema = z
   .string()
   .min(1)
   .max(160)
   .regex(/^[a-zA-Z0-9][a-zA-Z0-9._:-]*$/);
-const digest = z.string().regex(/^[a-f0-9]{64}$/);
+export const digestSchema = z.string().regex(/^[a-f0-9]{64}$/);
+export const shortTextSchema = z.string().min(1).max(2048);
+const identifier = identifierSchema;
+const digest = digestSchema;
+export const modelUsageSchema = z.object({
+  inputTokens: z.number().int().nonnegative().safe(),
+  outputTokens: z.number().int().nonnegative().safe(),
+});
+export const providerIdentitySchema = z
+  .object({
+    id: z.string().min(1).max(256),
+    model: z.string().min(1).max(256),
+    mode: z.enum(['live', 'scripted']),
+  })
+  .strict();
 const boundedText = z.string().min(1).max(16_384);
 export const assessmentModeSchema = z.enum(['documentary', 'recorded-behavior', 'controlled-test']);
 export type AssessmentMode = z.infer<typeof assessmentModeSchema>;

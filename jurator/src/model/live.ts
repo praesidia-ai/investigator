@@ -1,7 +1,7 @@
 // Owner: WP-M. Live ModelClient over the ported Meta Responses provider: strict JSON output, one retry, cost.
 import type { ModelClient, ModelJsonRequest, ModelJsonResult, ModelUsage } from '../contracts.js';
 import { JuratorError } from '../util/errors.js';
-import { addUsage, formatUsd, priceFor, usdFor } from './cost.js';
+import { addUsage, formatUsd, liveUsage, priceFor } from './cost.js';
 import type { ModelCompletion, ModelProvider } from './meta/model-provider.js';
 import { describeIssues, stripOptionalNulls, toStrictJsonSchema } from './strict.js';
 import { BRAND } from '../brand.js';
@@ -84,14 +84,7 @@ export class LiveModelClient implements ModelClient {
   }
 
   #usageOf(completion: Pick<ModelCompletion, 'usage'>): ModelUsage {
-    const tokens = completion.usage ?? { inputTokens: 0, outputTokens: 0 };
-    const usage: ModelUsage = {
-      id: this.id,
-      mode: 'live',
-      inputTokens: tokens.inputTokens,
-      outputTokens: tokens.outputTokens,
-      usd: usdFor(this.id, tokens),
-    };
+    const usage = liveUsage(this.id, completion.usage);
     this.#spentUsd += usage.usd;
     this.#usages.push(usage);
     return usage;

@@ -42,6 +42,7 @@ import {
 import { JuratorError } from '../../util/errors.js';
 import type { Command, CommandContext } from '../context.js';
 import { BRAND } from '../../brand.js';
+import { scanArgs } from '../loose-args.js';
 import { recordRuleBindings } from '../../bindings/index.js';
 import { withVideo } from '../../render/video.js';
 import { fancy, liveFor, modelLabel, print, screenUi, trackModel, workspaceLabel } from '../../render/screen.js';
@@ -105,20 +106,8 @@ interface Args {
   readonly values: Readonly<Record<string, string>>;
 }
 function parseArgs(argv: readonly string[]): Args {
-  const positional: string[] = [];
-  const flags = new Set<string>();
-  const values: Record<string, string> = {};
-  for (let i = 0; i < argv.length; i += 1) {
-    const a = argv[i] as string;
-    if (a === '--scripted' || a === '--at' || a === '--jobs' || a === '--concurrency' || a === '--budget') {
-      const v = argv[i + 1];
-      if (v === undefined || v.startsWith('--')) throw new JuratorError('BAD_INPUT', `${a} needs a value`);
-      // --jobs is the older name of --concurrency.
-      values[a === '--jobs' ? 'concurrency' : a.slice(2)] = v;
-      i += 1;
-    } else if (a.startsWith('--')) flags.add(a.slice(2));
-    else positional.push(a);
-  }
+  // --jobs is the older name of --concurrency.
+  const { positional, flags, values } = scanArgs(argv, ['--scripted', '--at', '--jobs', '--concurrency', '--budget'], { '--jobs': 'concurrency' });
   return { sub: positional[0], target: positional[1], flags, values };
 }
 

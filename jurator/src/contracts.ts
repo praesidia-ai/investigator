@@ -375,6 +375,16 @@ export type CheckRun = z.infer<typeof checkRunSchema>;
 
 /* ============================== rule assessments ============================== */
 
+export const storedEvasionSchema = z.object({
+  path: z.string(),
+  find: z.string(),
+  replace: z.string(),
+  why: z.string(),
+  judgeNote: z.string(),
+  round: z.number().int().min(0),
+  closed: z.boolean(),
+});
+
 /**
  * Portable record of what is known about a rule. Committed at .jurator/assessments/<ruleId>.json so its limits travel
  * with it. Open counterexamples prevent a 'strong-control' label; a limited detector is kept, with the shapes it misses.
@@ -388,17 +398,7 @@ export const assessmentBundleSchema = z.object({
   analyzer: z.object({ id: z.string().min(1), version: z.string().min(1) }),
   sourceRevision: commitSha,
   readSet: z.array(z.object({ path: z.string(), blob: z.string() })),
-  mutants: z.array(
-    z.object({
-      path: z.string(),
-      find: z.string(),
-      replace: z.string(),
-      why: z.string(),
-      judgeNote: z.string(),
-      round: z.number().int().min(0),
-      closed: z.boolean(),
-    }),
-  ),
+  mutants: z.array(storedEvasionSchema),
   harmlessControls: z.array(z.object({ path: z.string(), find: z.string(), replace: z.string(), why: z.string(), passed: z.boolean() })),
   adjudication: z.object({ by: z.enum(['model', 'human', 'none']), model: z.string().optional(), at: isoTime.optional(), independent: z.boolean() }),
   coverage: z.enum(['strong-control', 'limited-detector', 'unassessed']),

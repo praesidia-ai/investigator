@@ -1,13 +1,11 @@
 import { z } from 'zod';
-import { citationSchema } from '../core/schemas.js';
+import {
+  citationSchema,
+  digestSchema as digest,
+  identifierSchema as identifier,
+  shortTextSchema as text,
+} from '../core/schemas.js';
 
-const identifier = z
-  .string()
-  .min(1)
-  .max(160)
-  .regex(/^[a-zA-Z0-9][a-zA-Z0-9._:-]*$/);
-const text = z.string().min(1).max(2048);
-const digest = z.string().regex(/^[a-f0-9]{64}$/);
 export const clientEntityKindSchema = z.enum([
   'system',
   'agent',

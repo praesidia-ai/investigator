@@ -3,6 +3,7 @@
 import { resolve } from 'node:path';
 import { createInterface } from 'node:readline';
 import { parseArgs } from 'node:util';
+import { parseOrUsage } from '../usage-parse.js';
 import { BRAND } from '../../brand.js';
 import { createJuratorMcpServer, realMcpDeps, serveLines } from '../../mcp/index.js';
 import type { Command } from '../context.js';
@@ -14,14 +15,11 @@ const command: Command = {
   summary: 'Serve promises and checks to coding agents over MCP (stdio)',
   usage: `${USAGE}\n\nStarted by the coding agent (see templates/agents/README.md); read and check tools only.`,
   async run(ctx) {
-    let repo: string | undefined;
-    try {
-      repo = parseArgs({ args: [...ctx.argv], options: { repo: { type: 'string' } }, allowPositionals: false, strict: true })
-        .values.repo;
-    } catch (error) {
-      ctx.err(`${error instanceof Error ? error.message : String(error)}\nUsage: ${USAGE}`);
-      return 2;
-    }
+    const parsed = parseOrUsage(ctx, USAGE, () =>
+      parseArgs({ args: [...ctx.argv], options: { repo: { type: 'string' } }, allowPositionals: false, strict: true }),
+    );
+    if (!parsed) return 2;
+    const repo = parsed.values.repo;
     const cwd = repo ? resolve(ctx.cwd, repo) : ctx.cwd;
     const server = createJuratorMcpServer(realMcpDeps(cwd, ctx.now), ctx.err);
     // The one place a command reads stdin: MCP's stdio transport is the process's own stdin/stdout.

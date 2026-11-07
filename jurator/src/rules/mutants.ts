@@ -6,7 +6,7 @@
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { z } from 'zod';
-import type { PromiseRecord, Rule, SourceFile } from '../contracts.js';
+import { storedEvasionSchema, type PromiseRecord, type Rule, type SourceFile } from '../contracts.js';
 import { runOnEdit } from './propose.js';
 import { showEdit } from './redteam.js';
 import type { HardenReport } from './repair.js';
@@ -14,15 +14,6 @@ import type { HardenReport } from './repair.js';
 export const MUTANTS_FILE = join('local', 'rule-mutants.json');
 export const mutantsPath = (juratorDir: string): string => join(juratorDir, MUTANTS_FILE);
 
-const storedEvasionSchema = z.object({
-  path: z.string(),
-  find: z.string(),
-  replace: z.string(),
-  why: z.string(),
-  judgeNote: z.string(),
-  round: z.number().int().min(0),
-  closed: z.boolean(),
-});
 export type StoredEvasion = z.infer<typeof storedEvasionSchema>;
 const fileSchema = z.object({
   version: z.literal(1),

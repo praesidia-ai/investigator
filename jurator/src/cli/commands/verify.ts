@@ -2,6 +2,7 @@
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { parseArgs } from 'node:util';
+import { parseOrUsage } from '../usage-parse.js';
 import { verifyRun } from '../../check/index.js';
 import type { CheckRun, GitRepo, Store } from '../../contracts.js';
 import { openRepo } from '../../git/index.js';
@@ -16,18 +17,15 @@ const command: Command = {
   summary: 'Re-check a saved run’s digest and quotes, and re-run its rules, with no AI',
   usage: USAGE,
   async run(ctx) {
-    let parsed;
-    try {
-      parsed = parseArgs({
+    const parsed = parseOrUsage(ctx, USAGE, () =>
+      parseArgs({
         args: [...ctx.argv],
         options: { json: { type: 'boolean' } },
         allowPositionals: true,
         strict: true,
-      });
-    } catch (error) {
-      ctx.err(`${error instanceof Error ? error.message : String(error)}\nUsage: ${USAGE}`);
-      return 2;
-    }
+      }),
+    );
+    if (!parsed) return 2;
     const file = parsed.positionals[0];
     if (!file) {
       ctx.err(`Which run? Usage: ${USAGE}`);

@@ -2,6 +2,7 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
+import { parseOrUsage } from '../usage-parse.js';
 import { BRAND } from '../../brand.js';
 import { displayPath, loadReportInput, renderReport } from '../../report/index.js';
 import { runToSarif } from '../../report/sarif.js';
@@ -17,18 +18,15 @@ const command: Command = {
   summary: 'Write an HTML report: promises, rules, the last check and the promise graph',
   usage: USAGE,
   async run(ctx) {
-    let parsed;
-    try {
-      parsed = parseArgs({
+    const parsed = parseOrUsage(ctx, USAGE, () =>
+      parseArgs({
         args: [...ctx.argv],
         options: { out: { type: 'string', short: 'o' }, json: { type: 'boolean' }, format: { type: 'string' } },
         allowPositionals: true,
         strict: true,
-      });
-    } catch (error) {
-      ctx.err(`${error instanceof Error ? error.message : String(error)}\nUsage: ${USAGE}`);
-      return 2;
-    }
+      }),
+    );
+    if (!parsed) return 2;
     if (parsed.positionals.length > 1) {
       ctx.err(`One run at a time. Usage: ${USAGE}`);
       return 2;

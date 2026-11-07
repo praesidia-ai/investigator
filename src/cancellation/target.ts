@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
 import { InvestigatorError } from '../core/errors.js';
 import { jsonDigest } from '../core/json.js';
+import { readRequestText, readResponseText } from '../core/http-body.js';
 import { parseInput, parseJson } from '../core/parse.js';
 import { decodeUtf8, readBoundedFile } from '../io/read-file.js';
 import {
@@ -113,43 +114,20 @@ function jobDigest(job: Job): string {
 }
 
 async function requestJson(request: IncomingMessage): Promise<unknown> {
-  const chunks: Buffer[] = [];
-  let size = 0;
-  for await (const chunk of request) {
-    const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
-    size += bytes.byteLength;
-    if (size > 65_536) throw new Error('size');
-    chunks.push(bytes);
-  }
-  return parseJson(decodeUtf8(Buffer.concat(chunks)), 'INVALID_CANCELLATION_REQUEST');
+  return parseJson(await readRequestText(request), 'INVALID_CANCELLATION_REQUEST');
 }
 
 async function responseJson(response: Response): Promise<unknown> {
-  if (!response.ok || !response.body)
-    throw new InvestigatorError(
-      'CANCELLATION_TARGET_UNAVAILABLE',
-      'The authored workflow request failed.',
-    );
-  const reader = response.body.getReader();
-  const chunks: Uint8Array[] = [];
-  let size = 0;
-  try {
-    for (;;) {
-      const item = await reader.read();
-      if (item.done) break;
-      size += item.value.byteLength;
-      if (size > 65_536)
-        throw new InvestigatorError(
-          'CANCELLATION_RESPONSE_TOO_LARGE',
-          'The authored workflow response exceeded its bound.',
-        );
-      chunks.push(item.value);
-    }
-    return parseJson(decodeUtf8(Buffer.concat(chunks)), 'INVALID_CANCELLATION_RESPONSE');
-  } finally {
-    void reader.cancel().catch(() => {});
-    reader.releaseLock();
-  }
+  return parseJson(
+    await readResponseText(response, {
+      unavailable: ['CANCELLATION_TARGET_UNAVAILABLE', 'The authored workflow request failed.'],
+      tooLarge: [
+        'CANCELLATION_RESPONSE_TOO_LARGE',
+        'The authored workflow response exceeded its bound.',
+      ],
+    }),
+    'INVALID_CANCELLATION_RESPONSE',
+  );
 }
 
 async function startServer(server: Server): Promise<number> {

@@ -2,6 +2,7 @@
 // plus a red team in which one model attacks each rule and another judges what the rule missed.
 import { resolve } from 'node:path';
 import { parseArgs } from 'node:util';
+import { parseOrUsage } from '../usage-parse.js';
 import { DEFAULT_BENCH_DIR, loadBench, renderBenchText, runBench, type LabelledModel } from '../../bench/index.js';
 import { DEFAULT_CONFIG, type Config } from '../../contracts.js';
 import { createModel, hasModelKey } from '../../model/index.js';
@@ -26,9 +27,8 @@ const command: Command = {
   summary: 'Measure catch rate and false alarms on planted breaks (rules vs AI read vs a plain skill prompt)',
   usage: USAGE,
   async run(ctx) {
-    let args;
-    try {
-      args = parseArgs({
+    const args = parseOrUsage(ctx, USAGE, () =>
+      parseArgs({
         args: [...ctx.argv],
         options: {
           models: { type: 'string' },
@@ -47,11 +47,9 @@ const command: Command = {
         },
         allowPositionals: false,
         strict: true,
-      }).values;
-    } catch (error) {
-      ctx.err(`${error instanceof Error ? error.message : String(error)}\nUsage: ${USAGE}`);
-      return 2;
-    }
+      }).values,
+    );
+    if (!args) return 2;
     const budget = args.budget === undefined ? DEFAULT_BUDGET_USD : Number(args.budget);
     const concurrency = args.concurrency === undefined ? 6 : Number(args.concurrency);
     if (!Number.isFinite(budget) || budget <= 0 || !Number.isInteger(concurrency) || concurrency < 1 || concurrency > 16) {

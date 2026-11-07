@@ -1,7 +1,8 @@
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { InvestigatorError, publicError } from '../core/errors.js';
+import { publicError } from '../core/errors.js';
+import { writeBundle } from '../io/write-bundle.js';
 import type { ModelProvider } from '../providers/model-provider.js';
 import { ScriptedCancellationProvider } from '../providers/scripted-cancellation.js';
 import { renderCancellationHtml } from '../reports/cancellation-html.js';
@@ -148,31 +149,21 @@ export async function writeCancellationBundle(
   input: CancellationCase,
 ): Promise<void> {
   const report = verifyCancellationCase(input);
-  await mkdir(directory, { mode: 0o700 }).catch(() => {
-    throw new InvestigatorError(
-      'OUTPUT_UNAVAILABLE',
-      'Choose an available new cancellation-case directory.',
-    );
-  });
-  try {
-    const files: Record<string, string> = {
-      'case.json': `${JSON.stringify(report, null, 2)}\n`,
-      'before.json': `${JSON.stringify(report.before, null, 2)}\n`,
-      'report.html': renderCancellationHtml(report),
-    };
-    if (report.after) files['after.json'] = `${JSON.stringify(report.after, null, 2)}\n`;
-    if (report.change) files['repair.diff'] = report.change.diff;
-    for (const [name, content] of Object.entries(files))
-      await writeFile(join(directory, name), content, {
-        flag: 'wx',
-        mode: 0o600,
-        encoding: 'utf8',
-      });
-  } catch {
-    await rm(directory, { recursive: true, force: true });
-    throw new InvestigatorError(
-      'OUTPUT_UNAVAILABLE',
-      'The cancellation case could not be written.',
-    );
-  }
+  await writeBundle(
+    directory,
+    {
+      unavailable: 'Choose an available new cancellation-case directory.',
+      failed: 'The cancellation case could not be written.',
+    },
+    () => {
+      const files: Record<string, string> = {
+        'case.json': `${JSON.stringify(report, null, 2)}\n`,
+        'before.json': `${JSON.stringify(report.before, null, 2)}\n`,
+        'report.html': renderCancellationHtml(report),
+      };
+      if (report.after) files['after.json'] = `${JSON.stringify(report.after, null, 2)}\n`;
+      if (report.change) files['repair.diff'] = report.change.diff;
+      return files;
+    },
+  );
 }

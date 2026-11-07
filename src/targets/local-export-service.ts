@@ -8,6 +8,7 @@ import { z } from 'zod';
 import type { ControlCheckAdapter } from '../core/control-target.js';
 import { InvestigatorError } from '../core/errors.js';
 import { jsonDigest } from '../core/json.js';
+import { readRequestText, readResponseText } from '../core/http-body.js';
 import { parseInput, parseJson } from '../core/parse.js';
 import { jsonValueSchema } from '../core/schemas.js';
 import { decodeUtf8, readBoundedFile } from '../io/read-file.js';
@@ -62,28 +63,13 @@ export async function exportServiceRevision(directory: string): Promise<string> 
 }
 
 async function boundedResponse(response: Response): Promise<unknown> {
-  if (!response.ok || !response.body)
-    throw new InvestigatorError('TARGET_UNAVAILABLE', 'The fixture request failed.');
-  const reader = response.body.getReader();
-  let size = 0;
-  const chunks: Uint8Array[] = [];
-  try {
-    for (;;) {
-      const item = await reader.read();
-      if (item.done) break;
-      size += item.value.byteLength;
-      if (size > 65_536)
-        throw new InvestigatorError(
-          'TARGET_RESPONSE_TOO_LARGE',
-          'The fixture response exceeded its limit.',
-        );
-      chunks.push(item.value);
-    }
-    return parseJson(decodeUtf8(Buffer.concat(chunks)), 'INVALID_TARGET_RESPONSE');
-  } finally {
-    await reader.cancel().catch(() => {});
-    reader.releaseLock();
-  }
+  return parseJson(
+    await readResponseText(response, {
+      unavailable: ['TARGET_UNAVAILABLE', 'The fixture request failed.'],
+      tooLarge: ['TARGET_RESPONSE_TOO_LARGE', 'The fixture response exceeded its limit.'],
+    }),
+    'INVALID_TARGET_RESPONSE',
+  );
 }
 
 /** Explicit local fixture adapter. Never use it to execute untrusted checkout code. */
@@ -117,17 +103,9 @@ export class LocalExportServiceAdapter implements ControlCheckAdapter {
         return;
       }
       try {
-        const chunks: Buffer[] = [];
-        let size = 0;
-        for await (const chunk of request) {
-          const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
-          size += buffer.length;
-          if (size > 65_536) throw new Error('size');
-          chunks.push(buffer);
-        }
         const effect = parseInput(
           effectSchema,
-          parseJson(decodeUtf8(Buffer.concat(chunks))),
+          parseJson(await readRequestText(request)),
           'INVALID_EFFECT',
           'Effect',
         );

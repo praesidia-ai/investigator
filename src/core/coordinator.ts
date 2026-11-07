@@ -11,13 +11,14 @@ import { controlCaseCommitment, inputEvidenceCommitment } from './commitments.js
 import { modelFacingControl, type ControlCheckAdapter } from './control-target.js';
 import { InvestigatorError, publicError } from './errors.js';
 import type { EvidenceStore } from './evidence-store.js';
-import { jsonDigest, type JsonObject, type JsonValue } from './json.js';
+import { jsonDigest, oneOfToAnyOf, type JsonObject, type JsonValue } from './json.js';
 import { parseInput, parseJson } from './parse.js';
 import {
   checkResultSchema,
   controlCaseSchema,
   findingSchema,
   jsonValueSchema,
+  modelUsageSchema,
   type CheckResult,
   type ControlCase,
   type Finding,
@@ -86,29 +87,15 @@ const DEFAULT_BUDGET: InvestigationBudget = {
 // Zod remains the contract owner. Its disjoint locator branches are compatible
 // with the strict provider subset when represented as nested anyOf branches.
 function outputSchema(): JsonObject {
-  function normalize(value: JsonValue): JsonValue {
-    if (Array.isArray(value)) return value.map(normalize);
-    if (value === null || typeof value !== 'object') return value;
-    return Object.fromEntries(
-      Object.entries(value).map(([key, child]) => [
-        key === 'oneOf' ? 'anyOf' : key,
-        normalize(child),
-      ]),
-    );
-  }
   const object = z.record(z.string(), jsonValueSchema);
   return object.parse(
-    normalize(object.parse(z.toJSONSchema(findingSchema, { target: 'draft-7' }))),
+    oneOfToAnyOf(object.parse(z.toJSONSchema(findingSchema, { target: 'draft-7' }))),
   );
 }
 const FINDING_FORMAT: ModelOutputFormat = {
   name: 'investigator_finding_v1',
   schema: outputSchema(),
 };
-const usageSchema = z.object({
-  inputTokens: z.number().int().nonnegative().safe(),
-  outputTokens: z.number().int().nonnegative().safe(),
-});
 
 function instructions(role: 'investigator' | 'skeptic'): string {
   return [
@@ -255,7 +242,7 @@ export async function investigate(options: {
       }
       state = completion.state;
       if (completion.usage) {
-        const usage = usageSchema.safeParse(completion.usage);
+        const usage = modelUsageSchema.safeParse(completion.usage);
         if (
           !usage.success ||
           !Number.isSafeInteger(knownInputTokens + usage.data.inputTokens) ||

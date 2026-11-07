@@ -37,6 +37,12 @@ export function usdFor(modelId: string, tokens: TokenCounts): number {
   return Math.round(usd * 1_000_000) / 1_000_000;
 }
 
+/** The usage record of one live call; a missing token count (provider gave none) counts as zero. */
+export function liveUsage(modelId: string, usage: TokenCounts | undefined): ModelUsage {
+  const tokens = usage ?? { inputTokens: 0, outputTokens: 0 };
+  return { id: modelId, mode: 'live', inputTokens: tokens.inputTokens, outputTokens: tokens.outputTokens, usd: usdFor(modelId, tokens) };
+}
+
 /** Adds usages of the same client (e.g. a retry). Mode and id come from the first one. */
 export function addUsage(a: ModelUsage, b: ModelUsage): ModelUsage {
   return {

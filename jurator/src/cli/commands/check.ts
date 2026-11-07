@@ -1,6 +1,7 @@
 // Owner: WP-K. `jurator check`: rules first (no AI), AI read as a labelled fallback, one CheckRun record.
 import { relative, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
+import { parseOrUsage } from '../usage-parse.js';
 import { lastVerified } from '../../cache/index.js';
 import { exitCodeFor, runCheck } from '../../check/index.js';
 import { readInfeasible, terminalWidth } from '../../check/local.js';
@@ -25,9 +26,8 @@ const command: Command = {
   usage: USAGE,
   async run(ctx0) {
     const ctx = withVideo(ctx0); // --video / JURATOR_VIDEO=1: 100 columns, short paths and shas
-    let args;
-    try {
-      args = parseArgs({
+    const args = parseOrUsage(ctx, USAGE, () =>
+      parseArgs({
         args: [...ctx.argv],
         options: {
           diff: { type: 'string' },
@@ -43,11 +43,9 @@ const command: Command = {
         },
         allowPositionals: false,
         strict: true,
-      }).values;
-    } catch (error) {
-      ctx.err(`${error instanceof Error ? error.message : String(error)}\nUsage: ${USAGE}`);
-      return 2;
-    }
+      }).values,
+    );
+    if (!args) return 2;
     let budget: number | undefined;
     try {
       budget = parseBudget(args.budget);

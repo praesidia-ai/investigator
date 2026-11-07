@@ -5,7 +5,12 @@ import { EvidenceStore } from '../core/evidence-store.js';
 import { InvestigatorError } from '../core/errors.js';
 import { jsonDigest, stableJson } from '../core/json.js';
 import { parseInput } from '../core/parse.js';
-import { evidenceArtifactSchema, jsonValueSchema, type EvidenceArtifact } from '../core/schemas.js';
+import {
+  evidenceArtifactSchema,
+  jsonValueSchema,
+  providerIdentitySchema,
+  type EvidenceArtifact,
+} from '../core/schemas.js';
 import {
   evidenceRecipeProposalSchema,
   verifyEvidenceRecipe,
@@ -41,13 +46,7 @@ const assessments = z
   .strict();
 const planningSchema = z
   .object({
-    provider: z
-      .object({
-        id: z.string().min(1).max(256),
-        model: z.string().min(1).max(256),
-        mode: z.enum(['live', 'scripted']),
-      })
-      .strict(),
+    provider: providerIdentitySchema,
     request: evidenceRequestSchema,
     calls: z
       .array(

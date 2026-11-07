@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
 import { InvestigatorError } from '../core/errors.js';
 import { jsonDigest } from '../core/json.js';
+import { readRequestText } from '../core/http-body.js';
 import { parseInput, parseJson } from '../core/parse.js';
 import { decodeUtf8, readBoundedFile } from '../io/read-file.js';
 import {
@@ -284,17 +285,9 @@ export async function runEvidenceGapService(options: {
       return;
     }
     try {
-      const chunks: Buffer[] = [];
-      let size = 0;
-      for await (const chunk of request) {
-        const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
-        size += bytes.byteLength;
-        if (size > 65_536) throw new Error('size');
-        chunks.push(bytes);
-      }
       const envelope = parseInput(
         effectEnvelopeSchema,
-        parseJson(decodeUtf8(Buffer.concat(chunks))),
+        parseJson(await readRequestText(request)),
         'INVALID_EVIDENCE_EFFECT',
         'Effect envelope',
       );

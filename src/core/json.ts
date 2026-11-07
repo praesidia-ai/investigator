@@ -4,6 +4,18 @@ export type JsonValue =
   null | boolean | number | string | JsonValue[] | { [key: string]: JsonValue };
 export type JsonObject = { [key: string]: JsonValue };
 
+/** Rename every `oneOf` key to `anyOf`: the strict provider subset accepts the nested anyOf form of Zod's disjoint branches. */
+export function oneOfToAnyOf(value: JsonValue): JsonValue {
+  if (Array.isArray(value)) return value.map(oneOfToAnyOf);
+  if (value === null || typeof value !== 'object') return value;
+  return Object.fromEntries(
+    Object.entries(value).map(([key, child]) => [
+      key === 'oneOf' ? 'anyOf' : key,
+      oneOfToAnyOf(child),
+    ]),
+  );
+}
+
 /** Stable serialization for this application's manifests; not a claim of RFC 8785 conformance. */
 export function stableJson(value: JsonValue): string {
   if (value === null || typeof value !== 'object') {
