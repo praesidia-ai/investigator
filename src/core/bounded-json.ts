@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { JsonValue } from './json.js';
+import { hasOrdinaryArrayKeys, isOrdinaryDataProperty, type JsonValue } from './json.js';
 
 /** Validate data without cloning away reserved JSON keys that a commitment must retain. */
 export const boundedJsonValueSchema = z.custom<JsonValue>(
@@ -19,23 +19,10 @@ export const boundedJsonValueSchema = z.custom<JsonValue>(
       if (!Array.isArray(value) && ![Object.prototype, null].includes(Object.getPrototypeOf(value)))
         return false;
       if (Reflect.ownKeys(value).some((key) => typeof key !== 'string')) return false;
-      if (
-        Array.isArray(value) &&
-        (Object.keys(value).length !== value.length ||
-          Object.keys(value).some(
-            (key) => !/^(0|[1-9]\d*)$/.test(key) || Number(key) >= value.length,
-          ))
-      )
-        return false;
+      if (Array.isArray(value) && !hasOrdinaryArrayKeys(value)) return false;
       for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(value))) {
         if (Array.isArray(value) && key === 'length') continue;
-        if (
-          !descriptor.enumerable ||
-          descriptor.get ||
-          descriptor.set ||
-          !Object.hasOwn(descriptor, 'value')
-        )
-          return false;
+        if (!isOrdinaryDataProperty(descriptor)) return false;
         if (pending.length + nodes >= 20_000) return false;
         pending.push({ value: descriptor.value as unknown, depth: depth + 1 });
       }

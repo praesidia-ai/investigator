@@ -1,5 +1,10 @@
 import { InvestigatorError } from '../core/errors.js';
-import type { JsonObject, JsonValue } from '../core/json.js';
+import {
+  hasOrdinaryArrayKeys,
+  isOrdinaryDataProperty,
+  type JsonObject,
+  type JsonValue,
+} from '../core/json.js';
 
 const MAX_DEPTH = 10;
 const MAX_PROPERTIES = 5_000;
@@ -61,24 +66,13 @@ function validateJson(root: JsonObject): void {
     if (ancestors.has(value)) invalid('cyclic schema data is unsupported');
     if (Reflect.ownKeys(value).some((key) => typeof key !== 'string'))
       invalid('only string JSON keys are supported');
-    if (
-      Array.isArray(value) &&
-      (Object.keys(value).length !== value.length ||
-        Object.keys(value).some(
-          (key) => !/^(0|[1-9]\d*)$/.test(key) || Number(key) >= value.length,
-        ))
-    )
+    if (Array.isArray(value) && !hasOrdinaryArrayKeys(value))
       invalid('arrays must contain ordinary JSON entries');
     ancestors.add(value);
     pending.push({ value, exit: true });
     for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(value))) {
       if (Array.isArray(value) && key === 'length') continue;
-      if (
-        !descriptor.enumerable ||
-        descriptor.get ||
-        descriptor.set ||
-        !Object.hasOwn(descriptor, 'value')
-      )
+      if (!isOrdinaryDataProperty(descriptor))
         invalid('only ordinary JSON properties are supported');
       if (pending.length + count >= MAX_EXPANDED_NODES)
         invalid('the schema exceeds the supported node budget');

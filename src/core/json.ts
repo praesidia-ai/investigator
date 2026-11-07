@@ -37,3 +37,22 @@ export function sha256(value: string | Uint8Array): string {
 export function jsonDigest(value: JsonValue): string {
   return sha256(stableJson(value));
 }
+
+/** True when an own property is a plain enumerable data property (array `length` is skipped by callers). */
+export function isOrdinaryDataProperty(descriptor: PropertyDescriptor): boolean {
+  return (
+    Boolean(descriptor.enumerable) &&
+    !descriptor.get &&
+    !descriptor.set &&
+    Object.hasOwn(descriptor, 'value')
+  );
+}
+
+/** True when an array has only dense, canonical index keys. */
+export function hasOrdinaryArrayKeys(value: unknown[]): boolean {
+  const keys = Object.keys(value);
+  return (
+    keys.length === value.length &&
+    keys.every((key) => /^(0|[1-9]\d*)$/.test(key) && Number(key) < value.length)
+  );
+}
