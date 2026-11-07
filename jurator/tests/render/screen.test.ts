@@ -1,40 +1,18 @@
 // R4-UI2: when commands draw the new look, the model wrapper that feeds the live view, and the new check screen.
 import { describe, expect, it } from 'vitest';
-import { runCheck } from '../../src/check/index.js';
 import type { CommandContext } from '../../src/cli/context.js';
 import type { ModelClient } from '../../src/contracts.js';
 import { renderRunScreen, runWorkspace } from '../../src/render/check-screen.js';
 import { dressed, fancy, liveFor, trackModel, workspaceLabel } from '../../src/render/screen.js';
 import { createUi } from '../../src/ui/index.js';
 import { makeStyle } from '../../src/util/term.js';
-import { FakeModel, FakeRepo, FakeStore, fakeRunRule, fixedNow, promise, rule } from '../check/fakes.js';
+import { demoRun, fixedNow } from '../check/fakes.js';
 
 function ctx(argv: string[], env: NodeJS.ProcessEnv = {}, color = false) {
   const out: string[] = [];
   const err: string[] = [];
   const c: CommandContext = { cwd: '/x', argv, env, out: (l) => out.push(l), err: (l) => err.push(l), style: makeStyle(color), now: fixedNow };
   return { c, out, err };
-}
-
-async function demoRun() {
-  const repo = new FakeRepo(undefined, ['src/routes/export.ts']);
-  const store = new FakeStore(
-    [
-      promise('security.01', {
-        scope: ['src/routes/**'],
-        wording: 'Only workspace admins can export customer data.',
-        quote: { alias: 'security', policySha256: '0'.repeat(64), text: 'Only workspace admins can export customer data.', line: 3 },
-      }),
-      promise('privacy.02', { scope: ['src/export/**', 'src/routes/export.ts'] }),
-      promise('privacy.04', { checkable: 'process', wording: 'Tell users within 72 hours of a breach.' }),
-    ],
-    [rule('R-security.01', 'security.01', ['src/routes/**'])],
-  );
-  const model = new FakeModel({
-    'ai-read:privacy.02': { verdict: 'kept', explanation: 'Filters deleted and archived.', citations: [{ path: 'src/export/query.ts', startLine: 2, endLine: 2 }] },
-  }, 0);
-  const rr = fakeRunRule({ 'R-security.01': { outcome: 'fail', hits: [['src/routes/export.ts', 9]] } });
-  return runCheck({ repo, store, model, target: { kind: 'diff', base: 'main', head: 'HEAD' }, aiRead: true, now: fixedNow }, { runRule: rr.fn });
 }
 
 describe('fancy(): when a screen is drawn in the new look', () => {

@@ -1,29 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { runCheck } from '../../src/check/index.js';
 import { nextHint, renderRunMarkdown, renderRunText } from '../../src/render/index.js';
 import { makeStyle } from '../../src/util/term.js';
-import { FakeModel, FakeRepo, FakeStore, fakeRunRule, fixedNow, promise, rule } from './fakes.js';
-
-async function demoRun() {
-  const repo = new FakeRepo(undefined, ['src/routes/export.ts']);
-  const store = new FakeStore(
-    [
-      promise('security.01', {
-        scope: ['src/routes/**'],
-        wording: 'Only workspace admins can export customer data.',
-        quote: { alias: 'security', policySha256: '0'.repeat(64), text: 'Only workspace admins can export customer data.', line: 3 },
-      }),
-      promise('privacy.02', { scope: ['src/export/**', 'src/routes/export.ts'] }),
-      promise('privacy.04', { checkable: 'process', wording: 'Tell users within 72 hours of a breach.' }),
-    ],
-    [rule('R-security.01', 'security.01', ['src/routes/**'])],
-  );
-  const model = new FakeModel({
-    'ai-read:privacy.02': { verdict: 'kept', explanation: 'Filters deleted and archived.', citations: [{ path: 'src/export/query.ts', startLine: 2, endLine: 2 }] },
-  }, 0);
-  const rr = fakeRunRule({ 'R-security.01': { outcome: 'fail', hits: [['src/routes/export.ts', 9]] } });
-  return runCheck({ repo, store, model, target: { kind: 'diff', base: 'main', head: 'HEAD' }, aiRead: true, now: fixedNow }, { runRule: rr.fn });
-}
+import { demoRun } from './fakes.js';
 
 describe('renderers', () => {
   it('terminal text matches the agreed layout (no colour)', async () => {

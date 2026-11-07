@@ -4,6 +4,7 @@ import { existsSync, mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { ModelClient, ModelJsonRequest, ModelJsonResult, PromiseRecord, Rule, SourceFile } from '../../src/contracts.js';
+import { promise } from '../bindings/helpers.js';
 import { JuratorError } from '../../src/util/errors.js';
 
 /** The demo app as a git repo, built once per test run from examples/acme-notes (scripts/make-demo-repo.sh). */
@@ -55,21 +56,7 @@ export function acmeFiles(ref: string): SourceFile[] {
   return paths.map((path) => ({ path, text: execFileSync('git', ['-C', ACME, 'show', `${ref}:${path}`], { encoding: 'utf8' }) }));
 }
 
-const SHA = 'a'.repeat(64);
-export function promise(id: string, wording: string, scope: string[] = [], extra: Partial<PromiseRecord> = {}): PromiseRecord {
-  return {
-    id,
-    status: 'accepted',
-    wording,
-    quote: { alias: id.split('.')[0] as string, policySha256: SHA, text: wording },
-    kind: 'must',
-    checkable: 'code',
-    scope,
-    foundBy: 'model',
-    firstSeen: '2026-11-04T03:00:00.000Z',
-    ...extra,
-  };
-}
+export { promise };
 export const ACME_PROMISES: Record<string, PromiseRecord> = {
   'security.01': promise('security.01', 'Only workspace admins can export customer data.', ['src/routes/**', 'src/auth/**']),
   'privacy.01': promise('privacy.01', 'Support chats are deleted after 30 days.', ['src/agent/**']),

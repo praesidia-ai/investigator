@@ -1,7 +1,7 @@
 import { spawn, type ChildProcess } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { copyFile, lstat } from 'node:fs/promises';
-import { createServer, type Server } from 'node:http';
+import { createServer } from 'node:http';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
@@ -16,6 +16,7 @@ import {
   type ApprovalProbeDriver,
   type SinkEffect,
 } from '../reference/approval-control.js';
+import { closeServer, stopChild } from './process-lifecycle.js';
 
 const FILES = ['authorization.mjs', 'server.mjs'] as const;
 const responseSchema = z
@@ -58,26 +59,6 @@ export async function exportServiceRevision(directory: string): Promise<string> 
     files[file] = decodeUtf8(await readBoundedFile(path, 65_536));
   }
   return jsonDigest(files);
-}
-
-async function closeServer(server: Server): Promise<void> {
-  server.closeAllConnections();
-  if (server.listening) await new Promise<void>((resolve) => server.close(() => resolve()));
-}
-
-async function stopChild(child: ChildProcess | undefined): Promise<void> {
-  if (!child || child.exitCode !== null || child.signalCode !== null) return;
-  await new Promise<void>((resolve) => {
-    const timer = setTimeout(() => {
-      child.kill('SIGKILL');
-      resolve();
-    }, 1500);
-    child.once('exit', () => {
-      clearTimeout(timer);
-      resolve();
-    });
-    child.kill('SIGTERM');
-  });
 }
 
 async function boundedResponse(response: Response): Promise<unknown> {

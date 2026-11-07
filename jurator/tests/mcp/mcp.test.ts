@@ -1,5 +1,5 @@
 // The MCP server as a real child process over stdio, with fakes behind it (tests/mcp/fake-server.ts).
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { LATEST_PROTOCOL_VERSION } from '../../src/mcp/index.js';
 import { FAKE_SERVER, McpTestClient, textOf } from './client.js';
 
@@ -167,7 +167,8 @@ describe('jurator mcp over stdio (fakes)', () => {
     expect(pong.result).toEqual({});
     expect(client.lines.length).toBe(before + 1); // only the pong
     expect(client.lines.some((l) => l.id === 999)).toBe(false);
-    expect(client.stderr).toContain('ignored a line that is not valid JSON');
+    // stderr and stdout are separate pipes: the note can land after the pong.
+    await vi.waitFor(() => expect(client.stderr).toContain('ignored a line that is not valid JSON'));
   });
 
   it('notifications get no reply; a request with a non-2.0 version is an invalid request', async () => {

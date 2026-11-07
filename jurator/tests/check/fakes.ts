@@ -13,6 +13,7 @@ import type {
   SourceFile,
   Store,
 } from '../../src/contracts.js';
+import { runCheck } from '../../src/check/index.js';
 import { DEFAULT_CONFIG } from '../../src/contracts.js';
 import { matchesAny } from '../../src/util/glob.js';
 
@@ -192,3 +193,24 @@ export function fakeRunRule(outcomes: Record<string, { outcome: RuleRunResult['o
 }
 
 export const fixedNow = () => new Date('2026-11-04T03:30:00.000Z');
+
+export async function demoRun() {
+  const repo = new FakeRepo(undefined, ['src/routes/export.ts']);
+  const store = new FakeStore(
+    [
+      promise('security.01', {
+        scope: ['src/routes/**'],
+        wording: 'Only workspace admins can export customer data.',
+        quote: { alias: 'security', policySha256: '0'.repeat(64), text: 'Only workspace admins can export customer data.', line: 3 },
+      }),
+      promise('privacy.02', { scope: ['src/export/**', 'src/routes/export.ts'] }),
+      promise('privacy.04', { checkable: 'process', wording: 'Tell users within 72 hours of a breach.' }),
+    ],
+    [rule('R-security.01', 'security.01', ['src/routes/**'])],
+  );
+  const model = new FakeModel({
+    'ai-read:privacy.02': { verdict: 'kept', explanation: 'Filters deleted and archived.', citations: [{ path: 'src/export/query.ts', startLine: 2, endLine: 2 }] },
+  }, 0);
+  const rr = fakeRunRule({ 'R-security.01': { outcome: 'fail', hits: [['src/routes/export.ts', 9]] } });
+  return runCheck({ repo, store, model, target: { kind: 'diff', base: 'main', head: 'HEAD' }, aiRead: true, now: fixedNow }, { runRule: rr.fn });
+}

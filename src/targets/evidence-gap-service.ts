@@ -1,7 +1,7 @@
 import { spawn, type ChildProcess } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { copyFile } from 'node:fs/promises';
-import { createServer, type Server } from 'node:http';
+import { createServer } from 'node:http';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
@@ -14,6 +14,7 @@ import {
   LEGACY_EVIDENCE_PRODUCER,
   type EvidenceGapSources,
 } from '../remediation/evidence-recipe.js';
+import { closeServer, stopChild } from './process-lifecycle.js';
 
 const digestSchema = z.string().regex(/^[a-f0-9]{64}$/);
 const idSchema = z.string().min(1).max(160);
@@ -203,26 +204,6 @@ export function evidenceGapBusinessDigest(scenarios: readonly EvidenceGapScenari
       effects: scenario.effects.map((effect) => ({ requestDigest: effect.requestDigest })),
     })),
   );
-}
-
-async function closeServer(server: Server): Promise<void> {
-  server.closeAllConnections();
-  if (server.listening) await new Promise<void>((resolve) => server.close(() => resolve()));
-}
-
-async function stopChild(child: ChildProcess | undefined): Promise<void> {
-  if (!child || child.exitCode !== null || child.signalCode !== null) return;
-  await new Promise<void>((resolve) => {
-    const timer = setTimeout(() => {
-      child.kill('SIGKILL');
-      resolve();
-    }, 1500);
-    child.once('exit', () => {
-      clearTimeout(timer);
-      resolve();
-    });
-    child.kill('SIGTERM');
-  });
 }
 
 async function readResponse(response: Response): Promise<unknown> {
