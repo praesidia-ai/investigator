@@ -10,6 +10,7 @@ import { InvestigatorError } from '../core/errors.js';
 import { jsonDigest } from '../core/json.js';
 import { readRequestText, readResponseText } from '../core/http-body.js';
 import { parseInput, parseJson } from '../core/parse.js';
+import { digestSchema } from '../core/schemas.js';
 import { decodeUtf8, readBoundedFile } from '../io/read-file.js';
 import {
   BLOCKED_WORKER_SOURCE,
@@ -36,7 +37,6 @@ export type CancellationFixtureMode = z.infer<typeof cancellationFixtureModeSche
 
 const rootSchema = z.enum(['root:retired', 'root:independent']);
 const id = z.string().min(1).max(160);
-const digestSchema = z.string().regex(/^[a-f0-9]{64}$/);
 const jobSchema = z
   .object({
     rootId: rootSchema,

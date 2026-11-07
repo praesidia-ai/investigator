@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { InvestigatorError } from '../core/errors.js';
 import { jsonDigest, sha256 } from '../core/json.js';
 import { parseInput } from '../core/parse.js';
+import { digestSchema as digest } from '../core/schemas.js';
 
 export const CACHED_WORKER_SOURCE = `export function mayDispatch(job, currentRootActive) {
   return job.authorizedAtEnqueue;
@@ -23,7 +24,6 @@ export interface CancellationServiceSources {
   readonly 'server.mjs': string;
   readonly 'worker-authority.mjs': string;
 }
-const digest = z.string().regex(/^[a-f0-9]{64}$/);
 export const cancellationRecipeSchema = z
   .object({
     recipe: z.literal('check-current-root-authority.v1'),

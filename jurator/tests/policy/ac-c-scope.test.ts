@@ -2,10 +2,10 @@
 // a real run every backend promise was scoped to src/** (the cache write is in workers/**) and every extension promise
 // to src/** (the Anthropic calls are in ai-mode/src/**), because the compiler allowed 3 globs and never saw the folders.
 import { describe, expect, it, vi } from 'vitest';
-import type { ModelClient, ModelJsonRequest, ModelJsonResult, PromiseRecord } from '../../src/contracts.js';
+import type { PromiseRecord } from '../../src/contracts.js';
 import { compilePolicy, MAX_SCOPE_GLOBS, wholePartRepo, widenToRepoFolders } from '../../src/policy/compile.js';
 import { COMPILE_INSTRUCTIONS, compileInput, repoCodeFolders } from '../../src/policy/prompts.js';
-import { doc, NOW } from './helpers.js';
+import { capture, doc, NOW } from './helpers.js';
 
 vi.mock('../../src/connectors/index.js', () => ({
   getConnector: (id: string) => ({ id, readOnly: true, fetch: async () => { throw new Error('unused'); } }),
@@ -47,18 +47,6 @@ const Q4 = 'The extension keeps clipboard documents only in memory and never wri
 const Q9 = 'Every backend API request must carry a valid signed access token.';
 const Q13 = 'Document contents and extracted text are never written to logs.';
 
-function capture(answer: unknown): ModelClient & { inputs: string[] } {
-  const inputs: string[] = [];
-  return {
-    id: 'capture',
-    mode: 'scripted',
-    inputs,
-    async json<T>(req: ModelJsonRequest<T>): Promise<ModelJsonResult<T>> {
-      inputs.push(req.input);
-      return { value: req.schema.parse(answer), usage: { id: 'capture', mode: 'scripted', inputTokens: 0, outputTokens: 0, usd: 0 } };
-    },
-  };
-}
 const draft = (quote: string, wording: string, scope: string[], kind = 'must-not') => ({
   quote, wording, kind, checkable: 'code', scope, params: [], sameAs: null, facets: null,
 });

@@ -1,8 +1,8 @@
 import { z } from 'zod';
+import { digestSchema as digest, shortTextSchema } from '../core/schemas.js';
 
 const identifier = z.string().min(1).max(160);
 const sequence = z.number().int().positive().safe();
-const digest = z.string().regex(/^[a-f0-9]{64}$/);
 const time = z.iso.datetime();
 
 export const CANCELLATION_EXPERIMENT_IDS = Object.freeze([
@@ -70,7 +70,7 @@ export const cancellationCaptureSchema = z
       .object({
         status: z.enum(['complete', 'partial']),
         windowClosed: z.boolean(),
-        limitations: z.array(z.string().min(1).max(2048)).max(32),
+        limitations: z.array(shortTextSchema).max(32),
       })
       .strict(),
     cut: z
@@ -92,7 +92,7 @@ export const cancellationCheckSchema = z
   .object({
     experimentId: cancellationExperimentIdSchema.nullable(),
     status: z.enum(['PASS', 'FAIL', 'INCOMPLETE']),
-    reason: z.string().min(1).max(2048),
+    reason: shortTextSchema,
     witnessPointers: z.array(z.string().max(512)).max(32),
   })
   .strict();
@@ -106,7 +106,7 @@ export const cancellationAssessmentSchema = z
     verdict: z.enum(['supported', 'contradicted', 'insufficient_evidence']),
     checks: z.array(cancellationCheckSchema).max(4),
     missingExperiments: z.array(cancellationExperimentIdSchema).max(4),
-    limitations: z.array(z.string().min(1).max(2048)).min(1).max(16),
+    limitations: z.array(shortTextSchema).min(1).max(16),
   })
   .strict();
 export type CancellationAssessment = z.infer<typeof cancellationAssessmentSchema>;

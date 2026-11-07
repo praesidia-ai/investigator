@@ -7,6 +7,7 @@ import { parseInput, parseJson } from '../core/parse.js';
 import {
   evidenceArtifactSchema,
   jsonValueSchema,
+  shortTextSchema,
   type Citation,
   type EvidenceArtifact,
 } from '../core/schemas.js';
@@ -26,7 +27,7 @@ const identifier = z
 const objectSchema = z.record(z.string().max(256), jsonValueSchema);
 const iconSchema = z
   .object({
-    src: z.string().min(1).max(2048),
+    src: shortTextSchema,
     mimeType: z.string().min(1).max(128).optional(),
     sizes: z.array(z.string().min(1).max(32)).max(16).optional(),
     theme: z.enum(['light', 'dark']).optional(),
@@ -60,7 +61,7 @@ const toolSchema = z
 const listingSchema = z
   .object({
     tools: z.array(toolSchema).max(128),
-    nextCursor: z.string().min(1).max(2048).optional(),
+    nextCursor: shortTextSchema.optional(),
     _meta: objectSchema.optional(),
   })
   .strict();

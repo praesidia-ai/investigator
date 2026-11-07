@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { afterAll, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import init from '../../src/cli/commands/init.js';
 import pull from '../../src/cli/commands/pull.js';
 import status from '../../src/cli/commands/status.js';
@@ -8,15 +8,9 @@ import { DEFAULT_CONFIG, type ConnectorContext } from '../../src/contracts.js';
 import { getConnector, makeConnectorContext, pullSources, retentionSubject } from '../../src/connectors/index.js';
 import { sha256 } from '../../src/util/json.js';
 import { initWorkspace, openStore } from '../../src/workspace/index.js';
-import { ACME_FILES, cleanup, fakeCtx, makeRepo, tempDir, writeFiles } from '../git/helpers.js';
+import { ACME_FILES, fakeCtx, tempDir, useTempRepos, writeFiles } from '../git/helpers.js';
 
-const dirs: string[] = [];
-afterAll(() => cleanup(...dirs));
-function repo(): string {
-  const r = makeRepo(ACME_FILES);
-  dirs.push(r);
-  return r;
-}
+const { dirs, repo } = useTempRepos();
 const NOW = new Date('2026-11-04T05:00:00.000Z');
 function cctx(root: string, env: NodeJS.ProcessEnv = {}): ConnectorContext {
   return makeConnectorContext(root, env, () => NOW);

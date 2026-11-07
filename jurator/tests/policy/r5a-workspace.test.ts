@@ -1,10 +1,9 @@
 // R5-A item 1: in a workspace the compiler sees every repo (not the first 400 sorted files, which were all extension in
 // the live run), and every code promise's scope names an existing repo (repaired by the program when it does not).
 import { describe, expect, it, vi } from 'vitest';
-import type { ModelClient, ModelJsonRequest, ModelJsonResult } from '../../src/contracts.js';
 import { compilePolicy, repoFromWording } from '../../src/policy/compile.js';
 import { compileInput, repoOverview } from '../../src/policy/prompts.js';
-import { doc, NOW } from './helpers.js';
+import { capture, doc, NOW } from './helpers.js';
 
 vi.mock('../../src/connectors/index.js', () => ({
   getConnector: (id: string) => ({ id, readOnly: true, fetch: async () => { throw new Error('unused'); } }),
@@ -30,18 +29,6 @@ const CODE_FILES = [
   'backend-api/workers/extract.py',
 ].sort();
 
-function capture(answer: unknown): ModelClient & { inputs: string[] } {
-  const inputs: string[] = [];
-  return {
-    id: 'capture',
-    mode: 'scripted',
-    inputs,
-    async json<T>(req: ModelJsonRequest<T>): Promise<ModelJsonResult<T>> {
-      inputs.push(req.input);
-      return { value: req.schema.parse(answer), usage: { id: 'capture', mode: 'scripted', inputTokens: 0, outputTokens: 0, usd: 0 } };
-    },
-  };
-}
 const draft = (quote: string, wording: string, scope: string[]) => ({
   quote, wording, kind: 'must-not', checkable: 'code', scope, params: [], sameAs: null, facets: null,
 });

@@ -13,6 +13,8 @@ import {
   evidenceArtifactSchema,
   modelUsageSchema,
   providerIdentitySchema,
+  shortTextSchema,
+  digestSchema as digest,
 } from '../core/schemas.js';
 import type { ModelInput, ModelProvider } from '../providers/model-provider.js';
 import { assessCancellationExperiments } from './assessment.js';
@@ -33,9 +35,8 @@ import {
 } from './schemas.js';
 
 const errorSchema = z
-  .object({ code: z.string().min(1).max(160), message: z.string().min(1).max(2048) })
+  .object({ code: z.string().min(1).max(160), message: shortTextSchema })
   .strict();
-const digest = z.string().regex(/^[a-f0-9]{64}$/);
 export const cancellationEventSchema = z
   .object({
     sequence: z.number().int().min(1).max(40),
@@ -64,7 +65,7 @@ export const cancellationInvestigationSchema = z
     finding: cancellationFindingSchema.nullable(),
     assessment: cancellationAssessmentSchema,
     validation: z
-      .object({ accepted: z.boolean(), issues: z.array(z.string().min(1).max(2048)).max(16) })
+      .object({ accepted: z.boolean(), issues: z.array(shortTextSchema).max(16) })
       .strict(),
     usage: z
       .object({

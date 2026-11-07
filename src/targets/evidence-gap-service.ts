@@ -9,6 +9,7 @@ import { InvestigatorError } from '../core/errors.js';
 import { jsonDigest } from '../core/json.js';
 import { readRequestText } from '../core/http-body.js';
 import { parseInput, parseJson } from '../core/parse.js';
+import { digestSchema } from '../core/schemas.js';
 import { decodeUtf8, readBoundedFile } from '../io/read-file.js';
 import {
   BOUND_EVIDENCE_PRODUCER,
@@ -17,7 +18,6 @@ import {
 } from '../remediation/evidence-recipe.js';
 import { closeServer, stopChild } from './process-lifecycle.js';
 
-const digestSchema = z.string().regex(/^[a-f0-9]{64}$/);
 const idSchema = z.string().min(1).max(160);
 const timeSchema = z.iso.datetime();
 export const EVIDENCE_GAP_POLICY_REVISION = 'independent-export-approval.v1';

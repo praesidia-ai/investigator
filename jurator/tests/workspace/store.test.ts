@@ -1,18 +1,12 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { afterAll, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { DEFAULT_CONFIG, type CheckRun, type PromiseRecord } from '../../src/contracts.js';
 import { compareIds, findRepoRoot, initWorkspace, listRuns, openStore } from '../../src/workspace/index.js';
 import { aliasFromName, detectCodeScope, detectSources, parseSourceFlag } from '../../src/workspace/detect.js';
-import { ACME_FILES, cleanup, makeRepo, tempDir, writeFiles } from '../git/helpers.js';
+import { makeRepo, tempDir, useTempRepos, writeFiles } from '../git/helpers.js';
 
-const dirs: string[] = [];
-afterAll(() => cleanup(...dirs));
-function repo(): string {
-  const r = makeRepo(ACME_FILES);
-  dirs.push(r);
-  return r;
-}
+const { dirs, repo } = useTempRepos();
 
 const SHA = 'a'.repeat(64);
 function promise(id: string): PromiseRecord {

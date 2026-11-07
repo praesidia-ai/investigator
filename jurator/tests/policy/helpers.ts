@@ -157,6 +157,20 @@ export function scriptedModel(source: string | Record<string, unknown>): ModelCl
   };
 }
 
+/** A model that answers every task with `answer` and records each input. */
+export function capture(answer: unknown): ModelClient & { inputs: string[] } {
+  const inputs: string[] = [];
+  return {
+    id: 'capture',
+    mode: 'scripted',
+    inputs,
+    async json<T>(req: ModelJsonRequest<T>): Promise<ModelJsonResult<T>> {
+      inputs.push(req.input);
+      return { value: req.schema.parse(answer), usage: { id: 'capture', mode: 'scripted', inputTokens: 0, outputTokens: 0, usd: 0 } };
+    },
+  };
+}
+
 export class MemoryStore implements Store {
   readonly dir: string;
   readonly repoRoot: string;

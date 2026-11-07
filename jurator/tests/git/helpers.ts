@@ -3,6 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { afterAll } from 'vitest';
 import type { CommandContext } from '../../src/cli/context.js';
 import { makeStyle } from '../../src/util/term.js';
 
@@ -36,6 +37,13 @@ export function makeRepo(files: Record<string, string>): string {
 
 export function cleanup(...dirs: string[]): void {
   for (const d of dirs) rmSync(d, { recursive: true, force: true });
+}
+
+/** Call at module level: `repo()` makes an ACME repo, and every dir pushed to `dirs` is removed after the file. */
+export function useTempRepos(): { dirs: string[]; repo: () => string } {
+  const dirs: string[] = [];
+  afterAll(() => cleanup(...dirs));
+  return { dirs, repo: () => (dirs.push(makeRepo(ACME_FILES)), dirs[dirs.length - 1] as string) };
 }
 
 export const ACME_FILES: Record<string, string> = {
