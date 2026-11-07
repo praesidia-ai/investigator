@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import type { CommandContext } from '../../src/cli/context.js';
 import { runRuleCommand, type RuleCommandDeps } from '../../src/cli/commands/rule.js';
 import { DEFAULT_CONFIG, type GitRepo, type Rule, type Store } from '../../src/contracts.js';
 import type { MutantsFile } from '../../src/rules/index.js';
 import { matchesAny } from '../../src/util/glob.js';
-import { makeStyle } from '../../src/util/term.js';
+import { makeCtx } from '../command-context.js';
+
 import { ACME_PROMISES, acmeFiles, hasAcme, SCRIPTED_ACME, scriptedModel } from './helpers.js';
 
 const SHAS: Record<string, string> = { main: '1111111111111111111111111111111111111111', 'feature/csv-export': '2222222222222222222222222222222222222222' };
@@ -50,20 +50,7 @@ function fakeWorld() {
   };
   return { deps, writes, scriptedDirs, rules: () => rules, mutants: () => mutants };
 }
-function ctx(argv: string[]) {
-  const out: string[] = [];
-  const err: string[] = [];
-  const c: CommandContext = {
-    cwd: '/x',
-    argv,
-    env: {},
-    out: (l) => out.push(l),
-    err: (l) => err.push(l),
-    style: makeStyle(false),
-    now: () => new Date('2026-11-04T04:00:00.000Z'),
-  };
-  return { c, out, err };
-}
+const ctx = (argv: string[]) => makeCtx('/x', argv);
 
 describe.skipIf(!hasAcme)('jurator rule (fake store and git over acme-notes)', () => {
   it('propose --all --accept writes rules for coverable promises and explains the rest', async () => {

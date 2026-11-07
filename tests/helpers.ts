@@ -29,3 +29,21 @@ export async function temporaryCase() {
   await save();
   return { directory, manifest, save };
 }
+
+/** Test-only: CLI io that captures stdout and stderr chunks separately. */
+export function output() {
+  const stdout: string[] = [],
+    stderr: string[] = [];
+  return {
+    stdout,
+    stderr,
+    io: {
+      stdout: (text: string) => {
+        stdout.push(text);
+      },
+      stderr: (text: string) => {
+        stderr.push(text);
+      },
+    },
+  };
+}

@@ -41,6 +41,7 @@ import { assertStrictMetaSchema } from '../src/providers/strict-schema.js';
 import type { ModelProvider } from '../src/providers/model-provider.js';
 import { renderCancellationHtml } from '../src/reports/cancellation-html.js';
 import { runCli } from '../src/cli.js';
+import { output } from './helpers.js';
 import { jsonDigest, type JsonValue } from '../src/core/json.js';
 
 let report: CancellationCase;
@@ -478,16 +479,7 @@ describe('model-selected cancellation investigations', () => {
       await expect(writeCancellationBundle(destination, report)).rejects.toMatchObject({
         code: 'OUTPUT_UNAVAILABLE',
       });
-      const stdout: string[] = [],
-        stderr: string[] = [];
-      const io = {
-        stdout: (text: string) => {
-          stdout.push(text);
-        },
-        stderr: (text: string) => {
-          stderr.push(text);
-        },
-      };
+      const { stdout, stderr, io } = output();
       expect(
         await runCli(['verify-cancellation', join(destination, 'case.json'), '--json'], {}, io),
       ).toBe(0);

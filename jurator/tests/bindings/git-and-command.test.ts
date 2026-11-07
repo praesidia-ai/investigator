@@ -1,7 +1,6 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import type { CommandContext } from '../../src/cli/context.js';
 import { runBindCommand } from '../../src/cli/commands/bind.js';
 import { runRuleCommand } from '../../src/cli/commands/rule.js';
 import { DEFAULT_CONFIG, type Binding } from '../../src/contracts.js';
@@ -9,27 +8,15 @@ import { anchorAll, bindingsFromRule, changedLines, readBindings, reanchor, touc
 import { openRepo } from '../../src/git/index.js';
 import { runRule } from '../../src/rules/index.js';
 import { BRAND } from '../../src/brand.js';
-import { makeStyle } from '../../src/util/term.js';
+import { makeCtx } from '../command-context.js';
+
 import { initWorkspace, openStore } from '../../src/workspace/index.js';
 import { ACME_FILES, CHATS, EXPORT_ROUTE, P, R, SCRIPTED_ACME, cleanup, commitAll, files, git, makeRepo } from './helpers.js';
 
 const dirs: string[] = [];
 afterEach(() => cleanup(...dirs.splice(0)));
 
-function ctx(cwd: string, argv: string[]) {
-  const out: string[] = [];
-  const err: string[] = [];
-  const c: CommandContext = {
-    cwd,
-    argv,
-    env: {},
-    out: (l) => out.push(l),
-    err: (l) => err.push(l),
-    style: makeStyle(false),
-    now: () => new Date('2026-11-04T04:00:00.000Z'),
-  };
-  return { c, out, err };
-}
+const ctx = makeCtx;
 
 describe('changedLines and reanchor on a real git repo', () => {
   it('reads the agent/retention change as line 2 and finds the binding it touches', async () => {

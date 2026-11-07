@@ -2,24 +2,7 @@ import { rm, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { runCli } from '../src/cli.js';
-import { EXAMPLE_DIRECTORY, temporaryCase } from './helpers.js';
-
-function output() {
-  const stdout: string[] = [],
-    stderr: string[] = [];
-  return {
-    stdout,
-    stderr,
-    io: {
-      stdout: (text: string) => {
-        stdout.push(text);
-      },
-      stderr: (text: string) => {
-        stderr.push(text);
-      },
-    },
-  };
-}
+import { EXAMPLE_DIRECTORY, output, temporaryCase } from './helpers.js';
 
 describe('standalone command line', () => {
   it('exposes regression evaluation explicitly without model credentials', async () => {

@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadClientContext } from '../src/context/load.js';
 import { runCli } from '../src/cli.js';
+import { output } from './helpers.js';
 import { assessEvidenceCapture } from '../src/evidence-plans/gap-analysis.js';
 import { investigateEvidenceGap } from '../src/evidence-plans/investigate.js';
 import {
@@ -254,16 +255,7 @@ describe('client-aware evidence planning', () => {
         await readFile(join(destination, 'evidence-plan.json'), 'utf8'),
       ) as unknown;
       expect(verifyEvidencePlanReport(saved)).toEqual(report);
-      const out: string[] = [],
-        error: string[] = [];
-      const io = {
-        stdout: (text: string) => {
-          out.push(text);
-        },
-        stderr: (text: string) => {
-          error.push(text);
-        },
-      };
+      const { stdout: out, stderr: error, io } = output();
       expect(await runCli(['understand', example, '--json'], {}, io)).toBe(0);
       expect(JSON.parse(out.pop()!)).toMatchObject({
         format: 'investigator-client-context-v1',

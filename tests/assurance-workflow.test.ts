@@ -20,6 +20,7 @@ import {
   type AssuranceDemo,
 } from '../src/assurance/workflow.js';
 import { runCli } from '../src/cli.js';
+import { output } from './helpers.js';
 import { jsonDigest, type JsonValue } from '../src/core/json.js';
 import { loadMcpExport } from '../src/context/load-mcp.js';
 import { renderAssuranceHtml } from '../src/reports/assurance-html.js';
@@ -180,16 +181,7 @@ describe('recorded control evidence after client changes', () => {
       const imported = await loadMcpExport(example);
       expect(imported.dependencies).toHaveLength(2);
       expect(imported.snapshot.context.sources[0]?.coverage).toBe('partial');
-      const stdout: string[] = [],
-        stderr: string[] = [];
-      const io = {
-        stdout: (text: string) => {
-          stdout.push(text);
-        },
-        stderr: (text: string) => {
-          stderr.push(text);
-        },
-      };
+      const { stdout, stderr, io } = output();
       const evidencePath = join(directory, 'evidence.json');
       const checkpointPath = join(directory, 'checkpoint.json');
       const candidatePath = join(directory, 'candidate.json');

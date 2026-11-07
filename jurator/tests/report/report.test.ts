@@ -3,10 +3,10 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import report from '../../src/cli/commands/report.js';
-import type { CommandContext } from '../../src/cli/context.js';
 import type { CheckRun, PromiseRecord } from '../../src/contracts.js';
 import { buildGraph, loadReportInput, promiseViews, readRunFile, renderReport, ruleViews, type ReportInput } from '../../src/report/index.js';
-import { makeStyle } from '../../src/util/term.js';
+import { makeCtx } from '../command-context.js';
+
 import { openStore } from '../../src/workspace/index.js';
 
 const FIXTURES = resolve(import.meta.dirname, '../../fixtures/report');
@@ -149,20 +149,7 @@ describe('jurator report command', () => {
     dir = '';
   });
 
-  function ctx(cwd: string, argv: string[]) {
-    const out: string[] = [];
-    const err: string[] = [];
-    const c: CommandContext = {
-      cwd,
-      argv,
-      env: {},
-      out: (l) => out.push(l),
-      err: (l) => err.push(l),
-      style: makeStyle(false),
-      now: NOW,
-    };
-    return { c, out, err };
-  }
+  const ctx = (cwd: string, argv: string[]) => makeCtx(cwd, argv, NOW);
 
   async function repo(): Promise<string> {
     dir = await mkdtemp(join(tmpdir(), 'kw-report-'));
