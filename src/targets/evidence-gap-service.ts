@@ -16,7 +16,13 @@ import {
   LEGACY_EVIDENCE_PRODUCER,
   type EvidenceGapSources,
 } from '../remediation/evidence-recipe.js';
-import { closeServer, stopChild } from './process-lifecycle.js';
+import {
+  acceptObserverRequest,
+  closeServer,
+  postLoopbackJson,
+  stopChild,
+  waitForChildPort,
+} from './process-lifecycle.js';
 
 const idSchema = z.string().min(1).max(160);
 const timeSchema = z.iso.datetime();
@@ -275,15 +281,7 @@ export async function runEvidenceGapService(options: {
   const scenarios: EvidenceGapScenario[] = [];
   let sinkFailure = false;
   const sink = createServer(async (request, response) => {
-    if (
-      request.method !== 'POST' ||
-      request.url !== '/effects' ||
-      request.headers.authorization !== `Bearer ${observerToken}`
-    ) {
-      response.writeHead(403);
-      response.end();
-      return;
-    }
+    if (!acceptObserverRequest(request, response, observerToken)) return;
     try {
       const envelope = parseInput(
         effectEnvelopeSchema,
@@ -328,52 +326,13 @@ export async function runEvidenceGapService(options: {
         EVIDENCE_FIXTURE_AUTHORIZATION: authorization,
       },
     });
-    const target = child;
-    const port = await new Promise<number>((resolve, reject) => {
-      const fail = () => {
-        cleanup();
-        reject(
-          new InvestigatorError(
-            'EVIDENCE_TARGET_UNAVAILABLE',
-            'The authored service could not start.',
-          ),
-        );
-      };
-      const ready = (input: unknown) => {
-        const parsed = z
-          .object({ port: z.number().int().min(1).max(65535) })
-          .strict()
-          .safeParse(input);
-        if (!parsed.success) return;
-        cleanup();
-        resolve(parsed.data.port);
-      };
-      const timer = setTimeout(fail, 5000);
-      const cleanup = () => {
-        clearTimeout(timer);
-        signal.removeEventListener('abort', fail);
-        target.off('error', fail);
-        target.off('exit', fail);
-        target.off('message', ready);
-      };
-      target.once('error', fail);
-      target.once('exit', fail);
-      target.on('message', ready);
-      signal.addEventListener('abort', fail, { once: true });
-      if (signal.aborted) fail();
-    });
+    const port = await waitForChildPort(child, signal, [
+      'EVIDENCE_TARGET_UNAVAILABLE',
+      'The authored service could not start.',
+    ]);
     const post = async (path: string, body: unknown, admin = false): Promise<unknown> =>
       readResponse(
-        await fetch(`http://127.0.0.1:${port}${path}`, {
-          method: 'POST',
-          redirect: 'error',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(admin ? { Authorization: `Bearer ${adminToken}` } : {}),
-          },
-          body: JSON.stringify(body),
-          signal: AbortSignal.any([signal, AbortSignal.timeout(5000)]),
-        }),
+        await postLoopbackJson(port, path, body, signal, admin ? adminToken : undefined),
       );
     for (const scenario of EVIDENCE_GAP_SCENARIOS) {
       signal.throwIfAborted();

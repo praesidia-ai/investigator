@@ -17,7 +17,13 @@ import {
   type ApprovalProbeDriver,
   type SinkEffect,
 } from '../reference/approval-control.js';
-import { closeServer, stopChild } from './process-lifecycle.js';
+import {
+  acceptObserverRequest,
+  closeServer,
+  postLoopbackJson,
+  stopChild,
+  waitForChildPort,
+} from './process-lifecycle.js';
 
 const FILES = ['authorization.mjs', 'server.mjs'] as const;
 const responseSchema = z
@@ -93,15 +99,7 @@ export class LocalExportServiceAdapter implements ControlCheckAdapter {
     const observerToken = randomBytes(32).toString('hex');
     const effects: SinkEffect[] = [];
     const observer = createServer(async (request, response) => {
-      if (
-        request.method !== 'POST' ||
-        request.url !== '/effects' ||
-        request.headers.authorization !== `Bearer ${observerToken}`
-      ) {
-        response.writeHead(403);
-        response.end();
-        return;
-      }
+      if (!acceptObserverRequest(request, response, observerToken)) return;
       try {
         const effect = parseInput(
           effectSchema,
@@ -135,53 +133,13 @@ export class LocalExportServiceAdapter implements ControlCheckAdapter {
           FIXTURE_OBSERVER_URL: `http://127.0.0.1:${address.port}/effects`,
         },
       });
-      const target = child;
-      const port = await new Promise<number>((resolve, reject) => {
-        const fail = () => {
-          cleanup();
-          reject(
-            new InvestigatorError(
-              'TARGET_UNAVAILABLE',
-              'The isolated application could not start.',
-            ),
-          );
-        };
-        const timer = setTimeout(fail, 5000);
-        const cleanup = () => {
-          clearTimeout(timer);
-          signal.removeEventListener('abort', fail);
-          target.off('error', fail);
-          target.off('exit', fail);
-          target.off('message', ready);
-        };
-        const ready = (message: unknown) => {
-          const parsed = z
-            .object({ port: z.number().int().min(1).max(65535) })
-            .strict()
-            .safeParse(message);
-          if (parsed.success) {
-            cleanup();
-            resolve(parsed.data.port);
-          }
-        };
-        signal.addEventListener('abort', fail, { once: true });
-        target.once('error', fail);
-        target.once('exit', fail);
-        target.on('message', ready);
-        if (signal.aborted) fail();
-      });
+      const port = await waitForChildPort(child, signal, [
+        'TARGET_UNAVAILABLE',
+        'The isolated application could not start.',
+      ]);
       const post = async (path: string, body: unknown, admin = false, callSignal = signal) =>
         boundedResponse(
-          await fetch(`http://127.0.0.1:${port}${path}`, {
-            method: 'POST',
-            redirect: 'error',
-            headers: {
-              'Content-Type': 'application/json',
-              ...(admin ? { Authorization: `Bearer ${adminToken}` } : {}),
-            },
-            body: JSON.stringify(body),
-            signal: AbortSignal.any([callSignal, AbortSignal.timeout(5000)]),
-          }),
+          await postLoopbackJson(port, path, body, callSignal, admin ? adminToken : undefined),
         );
       const driver: ApprovalProbeDriver = {
         reset: async (grants, now, callSignal) => {

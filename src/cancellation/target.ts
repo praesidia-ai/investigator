@@ -12,6 +12,7 @@ import { readRequestText, readResponseText } from '../core/http-body.js';
 import { parseInput, parseJson } from '../core/parse.js';
 import { digestSchema } from '../core/schemas.js';
 import { decodeUtf8, readBoundedFile } from '../io/read-file.js';
+import { closeServer, waitForChildPort } from '../targets/process-lifecycle.js';
 import {
   BLOCKED_WORKER_SOURCE,
   CACHED_WORKER_SOURCE,
@@ -142,10 +143,6 @@ async function startServer(server: Server): Promise<number> {
       'A supervisor-owned service could not start.',
     );
   return address.port;
-}
-async function closeServer(server: Server): Promise<void> {
-  server.closeAllConnections();
-  if (server.listening) await new Promise<void>((resolve) => server.close(() => resolve()));
 }
 async function stopChild(child: ChildProcess | undefined): Promise<void> {
   if (!child || child.exitCode !== null || child.signalCode !== null) return;
@@ -347,40 +344,10 @@ export async function runCancellationExperiment(options: {
       },
     });
     const target = child;
-    const port = await new Promise<number>((resolve, reject) => {
-      const fail = () => {
-        cleanup();
-        reject(
-          new InvestigatorError(
-            'CANCELLATION_TARGET_UNAVAILABLE',
-            'The authored queue/worker could not start.',
-          ),
-        );
-      };
-      const ready = (input: unknown) => {
-        const parsed = z
-          .object({ port: z.number().int().min(1).max(65535) })
-          .strict()
-          .safeParse(input);
-        if (parsed.success) {
-          cleanup();
-          resolve(parsed.data.port);
-        }
-      };
-      const timer = setTimeout(fail, 5000);
-      const cleanup = () => {
-        clearTimeout(timer);
-        target.off('error', fail);
-        target.off('exit', fail);
-        target.off('message', ready);
-        signal.removeEventListener('abort', fail);
-      };
-      target.once('error', fail);
-      target.once('exit', fail);
-      target.on('message', ready);
-      signal.addEventListener('abort', fail, { once: true });
-      if (signal.aborted) fail();
-    });
+    const port = await waitForChildPort(target, signal, [
+      'CANCELLATION_TARGET_UNAVAILABLE',
+      'The authored queue/worker could not start.',
+    ]);
     const post = async (url: string, body: unknown, token: string) =>
       responseJson(await fetchResponse(url, body, token, signal));
     const servicePost = async (path: string, body: unknown) =>
