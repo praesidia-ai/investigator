@@ -20,6 +20,12 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: npm
       - run: npm ci
+      - name: Build the jurator packages the staged export acceptance runs
+        run: |
+          npm --prefix jurator ci
+          npm --prefix jurator run build
+          npm --prefix jurator/analyzers/ts-export-control ci
+          npm --prefix jurator/analyzers/ts-export-control run build
       - run: npm run check
       - name: Install and exercise the actual packed artifact in an isolated consumer
         run: npm run smoke:packed -- --independent

@@ -76,7 +76,7 @@ describe('multi-repo workspace end to end', () => {
     writeFileSync(join(widget, 'src/chats.ts'), 'export const WIDGET_CHAT_TTL_DAYS = 30;\n');
     writeFileSync(join(widget, 'src/panel.ts'), "export const panel = 'memory only';\n");
     writeFileSync(join(widget, 'tests/chats.test.ts'), "import '../src/chats.js';\n");
-    git(widget, 'init', '-q');
+    git(widget, 'init', '-q', '-b', 'main');
     git(widget, 'add', '-A');
     git(widget, 'commit', '-qm', 'widget 1.0');
   }, 60_000);
