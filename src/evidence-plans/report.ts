@@ -8,6 +8,7 @@ import { parseInput } from '../core/parse.js';
 import {
   evidenceArtifactSchema,
   jsonValueSchema,
+  knownUsageSchema,
   providerIdentitySchema,
   type EvidenceArtifact,
 } from '../core/schemas.js';
@@ -60,13 +61,7 @@ const planningSchema = z
       )
       .min(2)
       .max(8),
-    usage: z
-      .object({
-        knownInputTokens: z.number().int().nonnegative().safe(),
-        knownOutputTokens: z.number().int().nonnegative().safe(),
-        complete: z.boolean(),
-      })
-      .strict(),
+    usage: knownUsageSchema,
   })
   .strict();
 export const evidencePlanReportSchema = z

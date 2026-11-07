@@ -11,6 +11,7 @@ import { parseInput, parseJson } from '../core/parse.js';
 import {
   citationSchema,
   evidenceArtifactSchema,
+  knownUsageSchema,
   modelUsageSchema,
   providerIdentitySchema,
   shortTextSchema,
@@ -67,13 +68,7 @@ export const cancellationInvestigationSchema = z
     validation: z
       .object({ accepted: z.boolean(), issues: z.array(shortTextSchema).max(16) })
       .strict(),
-    usage: z
-      .object({
-        knownInputTokens: z.number().int().nonnegative().safe(),
-        knownOutputTokens: z.number().int().nonnegative().safe(),
-        complete: z.boolean(),
-      })
-      .strict(),
+    usage: knownUsageSchema,
     error: errorSchema.nullable(),
     digest,
   })

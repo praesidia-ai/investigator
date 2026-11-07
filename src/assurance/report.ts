@@ -3,7 +3,11 @@ import { InvestigatorError } from '../core/errors.js';
 import { jsonDigest, stableJson, type JsonValue } from '../core/json.js';
 import { parseInput } from '../core/parse.js';
 import { assessEvidenceCapture, evidenceAssessmentSchema } from '../evidence-plans/gap-analysis.js';
-import { evidenceGapRunSchema, type EvidenceGapRun } from '../targets/evidence-gap-service.js';
+import {
+  approvalCommitment,
+  evidenceGapRunSchema,
+  type EvidenceGapRun,
+} from '../targets/evidence-gap-service.js';
 import {
   ASSURANCE_VERIFIER_VERSION,
   assuranceCheckpointSchema,
@@ -65,16 +69,7 @@ export function assuranceWorkloadDigest(run: EvidenceGapRun): string {
       id: scenario.id,
       expectation: scenario.expectation,
       attempt: scenario.attempt,
-      approval: scenario.approval
-        ? {
-            workId: scenario.approval.workId,
-            grantId: scenario.approval.grantId,
-            actorId: scenario.approval.actorId,
-            reviewerId: scenario.approval.reviewerId,
-            requestDigest: scenario.approval.requestDigest,
-            policyRevision: scenario.approval.policyRevision,
-          }
-        : null,
+      approval: approvalCommitment(scenario.approval),
     })),
   );
 }

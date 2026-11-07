@@ -28,6 +28,13 @@ export const modelUsageSchema = z.object({
   inputTokens: z.number().int().nonnegative().safe(),
   outputTokens: z.number().int().nonnegative().safe(),
 });
+export const knownUsageSchema = z
+  .object({
+    knownInputTokens: z.number().int().nonnegative().safe(),
+    knownOutputTokens: z.number().int().nonnegative().safe(),
+    complete: z.boolean(),
+  })
+  .strict();
 export const providerIdentitySchema = z
   .object({
     id: z.string().min(1).max(256),

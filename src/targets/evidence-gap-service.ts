@@ -48,6 +48,12 @@ export const approvalWitnessSchema = z
     observedAt: timeSchema,
   })
   .strict();
+/** Approval fields that must match across runs; drops deployment revision and observation time. */
+export function approvalCommitment(approval: ApprovalWitness | null) {
+  if (!approval) return null;
+  const { workId, grantId, actorId, reviewerId, requestDigest, policyRevision } = approval;
+  return { workId, grantId, actorId, reviewerId, requestDigest, policyRevision };
+}
 export const executionWitnessSchema = z
   .object({
     type: z.literal('execution'),
@@ -197,16 +203,7 @@ export function evidenceGapBusinessDigest(scenarios: readonly EvidenceGapScenari
     scenarios.map((scenario) => ({
       id: scenario.id,
       attempt: scenario.attempt,
-      approval: scenario.approval
-        ? {
-            workId: scenario.approval.workId,
-            grantId: scenario.approval.grantId,
-            actorId: scenario.approval.actorId,
-            reviewerId: scenario.approval.reviewerId,
-            requestDigest: scenario.approval.requestDigest,
-            policyRevision: scenario.approval.policyRevision,
-          }
-        : null,
+      approval: approvalCommitment(scenario.approval),
       responseStatus: scenario.responseStatus,
       effects: scenario.effects.map((effect) => ({ requestDigest: effect.requestDigest })),
     })),
